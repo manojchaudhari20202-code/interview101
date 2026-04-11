@@ -867,3 +867,315 @@ When multiple threads access a collection concurrently, **thread safety** become
 | Copy‑on‑Write | `CopyOnWriteArrayList` | Write‑copy (no read locks) | Snapshot‑based (weakly consistent) | Read‑heavy, write‑rare |
 
 > **Tip:** For most concurrent scenarios, prefer `ConcurrentHashMap` over `Collections.synchronizedMap`. Use `CopyOnWriteArrayList` only when writes are very infrequent and you need safe iteration without locking.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Internal Mechanics (Very Important)
+
+Understanding how core collections work **under the hood** is crucial for writing efficient, predictable code. This section explains the internal mechanics of `HashMap`, `TreeMap`, and `ArrayList`.
+
+#### HashMap Internals
+`HashMap` is a hash table‑based implementation of the `Map` interface. Its internal design has evolved significantly, especially in Java 8+.
+
+- **Hash Function**
+	- **Purpose:** Converts a key into an integer hash code, which is then used to determine the bucket index.
+	- **Implementation in Java 8+:**  
+	  ```java
+	  static final int hash(Object key) {
+		  int h;
+		  return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+	  }
+	  ```
+- **Why the extra transformation (`^ (h >>> 16)`)?**  
+  - It spreads the higher bits of the original hash code down to the lower bits.  
+  - Since the index calculation only uses the lower bits (because capacity is a power of two), this reduces collisions for keys with similar hash codes.
+
+- **Index calculation `(n - 1) & hash`**
+	- **Formula:** `index = (n - 1) & hash`  
+	  where `n` is the current table length (always a power of two).
+	- **Why bitwise AND?** It is equivalent to `hash % n` but much faster (no modulo operation). Works correctly only because `n` is a power of two.
+	- **Example:** If `n = 16` (binary 10000), then `n - 1 = 15` (binary 01111). The AND operation keeps only the lowest 4 bits of the hash, producing an index in `[0, 15]`.
+
+- **Buckets / Bins**
+	- **Definition:** The `Node` array that stores the elements; each slot is called a **bucket** (or bin).
+	- Initially an array of `Node<K,V>` (or `TreeNode` after treeification).
+	- Each bucket can contain:
+	  - `null` (empty)
+	  - A single `Node`
+	  - A linked list of `Node`s (collision chain)
+	  - A red‑black tree (if treeified)
+
+- **Node vs TreeNode**
+
+	| Type | When used | Structure |
+	|------|-----------|-----------|
+	| `Node` | Normal bucket (linked list) | `hash`, `key`, `value`, `next` reference |
+	| `TreeNode` | When a bucket becomes too large (≥ 8) | Extends `LinkedHashMap.Entry`; contains `parent`, `left`, `right`, `prev`, `red` flag; supports tree operations |
+
+	- **Java 8+ optimisation:** After treeification, lookups go from O(n) to O(log n) for that bucket.
+
+- **Treeification threshold (8)**
+	- **Default value:** `static final int TREEIFY_THRESHOLD = 8;`
+	- **Meaning:** If a bucket’s linked list length **reaches or exceeds 8** (and the total table size ≥ 64), the list is converted into a balanced red‑black tree.
+	- **Why 8?** Based on Poisson distribution: the probability of having 8 collisions with a good hash function is extremely low. It balances memory overhead (tree nodes are larger) vs performance.
+
+- **Untreeify threshold (6)**
+	- **Default value:** `static final int UNTREEIFY_THRESHOLD = 6;`
+	- **Meaning:** If, during a removal or resize, a tree bucket’s size **drops to 6 or fewer**, it is converted back to a linked list.
+	- **Hysteresis:** The gap between 8 and 6 prevents frequent conversions (thrashing).
+
+- **Resize threshold**
+	- **Definition:** The product of **capacity × load factor**.
+	- **Formula:** `threshold = (int) (capacity * loadFactor)`
+	- **When exceeded:** The table is resized (typically doubled). Resizing includes rehashing all entries.
+
+- **Rehashing**
+	- **Process:** When the table resizes (capacity doubles), every existing entry’s index is recalculated because `n` changes.
+	- **Optimisation in Java 8:** Because capacity is a power of two, each entry either stays at the same index or moves to `oldIndex + oldCapacity`. No need to recompute the full hash.
+	- **Example:** If old capacity = 16, new capacity = 32. For an entry with `hash & 15 = 5`, it will be placed either at index 5 or 21 (5+16) depending on the next higher bit of the hash.
+
+- **Bitwise operations**
+	HashMap heavily uses **bitwise operations** for speed:
+
+	| Operation | Purpose |
+	|-----------|---------|
+	| `(n - 1) & hash` | Compute bucket index |
+	| `h ^ (h >>> 16)` | Spread high bits (final hash mixing) |
+	| `table.length` always power of two – uses bit masks |
+	| `oldCap << 1` | Double capacity during resize |
+	| `if ((e.hash & oldCap) == 0)` | Decide whether to keep in original index or move |
+
+#### TreeMap Internals
+
+`TreeMap` is a **Red‑Black tree** based implementation of the `NavigableMap` interface. It stores keys in sorted order.
+
+- **Red‑Black Tree properties**
+	A Red‑Black tree is a **self‑balancing binary search tree** with the following invariants:
+	1. **Every node is either red or black.**
+	2. **The root is always black.**
+	3. **All leaves (NIL/null) are black.**
+	4. **Red nodes cannot have red children** (no two consecutive reds on any path).
+	5. **Every path from a node to its descendant leaves contains the same number of black nodes** (black‑height).
+
+	These properties guarantee the tree remains approximately balanced, with the longest path no more than twice the shortest path.
+
+- **Self‑balancing BST**
+	- **Why self‑balancing?** Without balancing, a BST can degenerate into a linked list (O(n) operations). Red‑Black trees automatically fix imbalances after insertions and deletions.
+	- **Balance guarantee:** Height is **O(log n)**, ensuring worst‑case O(log n) for `put`, `get`, `remove`.
+
+- **Rotations (Left / Right)**
+	Rotations are the fundamental operations used to restore Red‑Black properties after modifications.
+	- **Left rotation (rotate left around a node `x`):**  
+	  Makes `x`’s right child `y` the new parent. `y`’s left subtree becomes `x`’s right subtree.
+	  ```
+		   x               y
+			\     →       /
+			 y           x
+	  ```
+	- **Right rotation (rotate right around a node `y`):**  
+	  Makes `y`’s left child `x` the new parent. `x`’s right subtree becomes `y`’s left subtree.
+	  ```
+		   y               x
+		  /       →         \
+		 x                   y
+	  ```
+	- **Complexity:** O(1) per rotation; used during `fixAfterInsertion` and `fixAfterDeletion`.
+
+- **Log(n) complexity**
+	- Because the tree is balanced, the height is at most `2 * log2(n+1)`.
+	- All basic operations (`get`, `put`, `remove`, `lowerKey`, `ceilingKey`, etc.) run in **O(log n)** time.
+	- This is in contrast to `HashMap`’s O(1) average, but `TreeMap` provides ordering and navigational methods.
+
+
+#### ArrayList Internals
+`ArrayList` is a **resizable array** implementation of the `List` interface.
+
+- **Backing array**
+	- **Internal storage:** A plain Java array: `transient Object[] elementData;`
+	- When you create an `ArrayList` with the default constructor, it creates an empty array (shared empty array `DEFAULTCAPACITY_EMPTY_ELEMENTDATA`).
+	- Only when the first element is added does it allocate an array of **default capacity 10** (lazy initialisation).
+
+- **Resize logic**
+	- **When does resize happen?** When `size == elementData.length` (i.e., the backing array is full) during an `add` operation.
+	- **Growth formula (Java 8+):**  
+	  `int newCapacity = oldCapacity + (oldCapacity >> 1);`  
+	  This increases by **50%** (1.5×). For example: 10 → 15 → 22 → 33 …
+	- **Special case:** If the new capacity is still less than the minimum required (e.g., after `addAll`), it uses the minimum required.
+	- **Edge case:** Very large arrays – if new capacity exceeds `MAX_ARRAY_SIZE` (`Integer.MAX_VALUE - 8`), a huge allocation is attempted.
+	- **`ensureCapacity(int minCapacity)`** – can be called manually to pre‑allocate space and avoid multiple resizes.
+
+- **System.arraycopy**
+	- **What is it?** A native (JVM) method for fast array copying:  
+	  `public static native void arraycopy(Object src, int srcPos, Object dest, int destPos, int length);`
+	- **Used in `ArrayList` for:**
+	  - **Resizing:** Copying old array to new larger array.
+	  - **Removing an element (not last):** Shift elements left: `System.arraycopy(elementData, index+1, elementData, index, numMoved);`
+	  - **Adding at an index:** Shift elements right.
+	  - **`toArray()`** and other bulk operations.
+	- **Why `System.arraycopy`?** It is implemented in native code (C/C++) and uses CPU‑level memory copying, making it **much faster** than a manual loop.
+
+#### Summary Table (Internal Mechanics)
+
+| Component | Key Internal Detail |
+|-----------|----------------------|
+| `HashMap` index calc | `(n-1) & hash`, power‑of‑two capacity |
+| `HashMap` treeification | List → Tree when length ≥ 8, table size ≥ 64 |
+| `HashMap` untreeify | Tree → List when size ≤ 6 |
+| `HashMap` resize | Capacity doubles; rehash uses `(e.hash & oldCap) == 0` |
+| `TreeMap` structure | Red‑Black tree (self‑balancing BST) |
+| `TreeMap` rotations | Left / right rotations to maintain Red‑Black properties |
+| `ArrayList` backing | `Object[] elementData` |
+| `ArrayList` growth | 1.5× (`oldCapacity + (oldCapacity >> 1)`) |
+| `ArrayList` copy | `System.arraycopy` (native, fast) |
+
+Understanding these internals helps you choose the right collection, predict performance, and avoid pitfalls like excessive resizing or treeification overhead.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Performance & Big‑O
+
+Understanding performance characteristics of different collections is essential for choosing the right data structure. This section covers complexity analysis, real‑world factors like cache locality, and key trade‑offs.
+
+#### Time Complexity
+
+Time complexity measures how the runtime of an operation grows with the input size `n`. It is expressed using **Big‑O notation**, which describes the **upper bound** (worst‑case growth rate). Common complexities from fastest to slowest:
+
+| Notation | Name | Example |
+|----------|------|---------|
+| **O(1)** | Constant | Accessing an array element by index |
+| **O(log n)** | Logarithmic | Binary search, TreeMap operations |
+| **O(n)** | Linear | Searching an unsorted list |
+| **O(n log n)** | Linearithmic | Efficient sorting (merge sort, heap sort) |
+| **O(n²)** | Quadratic | Bubble sort, nested loops |
+
+#### O(1), O(log n), O(n)
+
+- **O(1) – Constant Time**  
+  The operation takes the same number of steps regardless of input size.  
+  Examples: `ArrayList.get(index)`, `HashMap.get(key)` (average case), `push/pop` on a stack.
+
+- **O(log n) – Logarithmic Time**  
+  The operation’s steps increase slowly (e.g., doubling `n` adds only one extra step).  
+  Examples: Binary search, `TreeMap.get(key)`, `add`/`remove` in a balanced BST.
+
+- **O(n) – Linear Time**  
+  The operation’s steps grow proportionally to `n`.  
+  Examples: `LinkedList.get(index)` (must traverse from head), searching an unsorted array, `ArrayList.remove(index)` with shift.
+
+#### Space Complexity
+
+Space complexity measures the amount of **additional memory** (auxiliary space) an algorithm or data structure uses, also expressed in Big‑O.
+
+| Structure | Space Complexity (average) | Notes |
+|-----------|----------------------------|-------|
+| `ArrayList` | O(n) | Backing array of size capacity (often larger than `size`) |
+| `LinkedList` | O(n) | Each node stores item + two pointers (higher constant factor) |
+| `HashMap` | O(n) | Table array + entries; load factor leaves slack space |
+| `TreeMap` | O(n) | Each node stores left/right/parent/color (higher overhead) |
+
+#### Amortized Cost
+
+- **Definition:** The average cost per operation over a **sequence** of operations, even if some individual operations are expensive.
+- **Why needed:** Some data structures have occasional costly resizing or rebalancing, but the cost is spread across many cheap operations.
+- **Example – `ArrayList.add`:**  
+  Most adds are O(1). When the array is full, resizing creates a new array (O(n) copy). However, if we double the capacity each time, the **amortized** cost per add remains **O(1)**.
+- **Example – `HashMap.put`:**  
+  Amortized O(1) because rehashing happens rarely (only when load factor is exceeded).
+
+#### Cache Locality
+
+- **Definition:** How efficiently the CPU cache is used when accessing data structures. Data stored **contiguously** in memory (good spatial locality) loads multiple elements into cache lines, speeding up sequential access.
+- **Good cache locality:** Arrays (`ArrayList`) – elements are in a contiguous block. Iterating is very fast because the CPU pre‑fetches nearby elements.
+- **Poor cache locality:** Linked structures (`LinkedList`, `TreeMap` nodes) – nodes are allocated separately, scattered in memory. Each step may cause a cache miss, significantly slowing iteration.
+
+> **Real‑world impact:** Even though `LinkedList` and `ArrayList` both have O(n) iteration, `ArrayList` is often **5–10× faster** due to cache locality.
+
+#### Memory Footprint
+
+- **Definition:** The amount of heap memory a data structure consumes **per stored element** (including overhead for pointers, object headers, padding).
+- **Typical overhead per element (approximate, 64‑bit JVM with compressed oops):**
+  - `ArrayList`: 4 bytes per reference (backing array) + array object overhead. Very compact.
+  - `LinkedList`: ~24 bytes per node (item + prev + next + object header) → **high overhead**.
+  - `HashMap` (Node): ~32 bytes per entry (hash, key, value, next) + bucket array overhead.
+  - `TreeMap` (TreeNode): ~56 bytes per entry (key, value, left, right, parent, color, etc.) → highest.
+- **Conclusion:** If memory is tight and you store many elements, prefer `ArrayList` over `LinkedList`, and `HashMap` over `TreeMap`.
+
+#### Trade‑offs (ArrayList vs LinkedList)
+
+| Operation | `ArrayList` | `LinkedList` |
+|-----------|-------------|---------------|
+| **get(index)** | O(1) – direct array access | O(n) – traverse from head/tail |
+| **add (at end)** | Amortized O(1) (rare resize) | O(1) (if tail known) |
+| **add (at middle)** | O(n) – shift elements | O(n) – but only traversal; insertion itself is O(1) once node found |
+| **remove (at middle)** | O(n) – shift elements | O(n) – traversal + O(1) removal |
+| **addFirst / removeFirst** | O(n) – shift all elements | O(1) – just update head |
+| **Iteration** | Very fast (cache locality) | Slower (pointer chasing, cache misses) |
+| **Memory per element** | Low (just reference) | High (node with two pointers) |
+
+**When to choose which:**
+- **Use `ArrayList`** when: random access is frequent, iteration dominates, you mostly add/remove at the end, memory matters.
+- **Use `LinkedList`** when: you frequently insert/remove at **both ends** (as a queue/deque) – but `ArrayDeque` is often better. Rarely needed in practice.
+
+#### HashMap vs TreeMap Performance
+
+| Aspect | `HashMap` | `TreeMap` |
+|--------|-----------|-----------|
+| **Average time (put/get/remove)** | O(1) | O(log n) |
+| **Worst‑case time** | O(log n) after treeification (Java 8+) or O(n) before | O(log n) guaranteed |
+| **Memory overhead** | Moderate (array + nodes) | Higher (red‑black tree nodes) |
+| **Ordering** | None (unordered) | Sorted (natural or comparator) |
+| **Null keys** | One null key allowed | No null keys (unless comparator handles it) |
+| **Concurrent version** | `ConcurrentHashMap` | `ConcurrentSkipListMap` (not TreeMap) |
+| **Navigation methods** | No | Yes (`lowerKey`, `ceilingEntry`, `subMap`, etc.) |
+
+**Choosing between them:**
+- **Use `HashMap`** for fastest lookups when ordering is not required. Almost always the default choice.
+- **Use `TreeMap`** when you need:
+  - Keys in sorted order (e.g., for range queries, iteration in order).
+  - Navigable methods (`higherKey`, `floorKey`, etc.).
+  - Guaranteed O(log n) performance (though rare in practice).
+
+> **Note:** For immutable maps with few entries, `EnumMap` or `LinkedHashMap` may be better. For concurrency, use `ConcurrentHashMap`.
+
+---
+
+## Summary Table – Key Performance Takeaways
+
+| Collection | Best for | Avoid when |
+|------------|----------|------------|
+| `ArrayList` | Random access, iteration, end additions | Frequent middle insertions/deletions |
+| `LinkedList` | Frequent add/remove at ends (queue/deque) | Random access, iteration, large size |
+| `HashMap` | Fast key‑based lookups, no ordering needed | Sorted iteration, range queries |
+| `TreeMap` | Sorted keys, navigation, range queries | Ultra‑fast lookups (use HashMap) |
+
+Remember: **Big‑O tells you scaling behaviour, but constants and cache effects matter in practice.** Always profile when performance is critical.
