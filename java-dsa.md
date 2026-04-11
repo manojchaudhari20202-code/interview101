@@ -453,6 +453,11 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | Tree Algorithms | Tree Traversal (Inorder, Preorder, Postorder) | O(n) | O(n) | O(n) |
 | Tree Algorithms | Binary Search Tree Operations |  O(log n) | O(n) | O(log n) |
 
+- Arrays.sort() for primitives : Dual-Pivot Quicksort
+- Arrays.sort() for objects, Collections.sort() : TimSort
+- TreeMap, TreeSet : Red-Black Tree
+- PriorityQueue : Binary Heap
+
 #### Core Data Structures (Operations)
 **Array**
 * Access: O(1)
