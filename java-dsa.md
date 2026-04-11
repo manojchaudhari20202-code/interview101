@@ -434,7 +434,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 
 | Type | Context | Best case | Worst case | Average case | 
 | --- | --- | --- | --- | 
-|Sorting Algorithms| Quicksort |  O(n log n) | O(n²) | O(n log n) |
+| Sorting Algorithms | Quicksort |  O(n log n) | O(n²) | O(n log n) |
 
 
 
