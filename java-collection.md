@@ -562,7 +562,7 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
   - Supports **fairness** mode (using a queue) or non‑fair (stack‑based)
   - `put()` blocks until another thread calls `take()`; `offer()` fails immediately if no waiting consumer
 
-### Keywords
+#### Keywords
 - **FIFO / LIFO**
 	- **FIFO (First‑In‑First‑Out):** Standard queue behaviour – elements are removed in the order they were added. Example: `ArrayDeque` used as queue.
 	- **LIFO (Last‑In‑First‑Out):** Stack behaviour – last element added is the first removed. `Deque` with `push()`/`pop()` (e.g., `ArrayDeque` as stack).
