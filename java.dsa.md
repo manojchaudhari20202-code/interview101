@@ -420,3 +420,397 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | **In‑place** | O(1) extra space (modifies input) |
 | **Stable** | Preserves order of equal elements |
 | **Randomized** | Uses randomness to make decisions |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Sorting Algorithms
+
+**Quicksort**
+
+* Best case: O(n log n)
+* Worst case: O(n²)
+* Average case: O(n log n)
+
+**Merge Sort**
+
+* Best case: O(n log n)
+* Worst case: O(n log n)
+* Average case: O(n log n)
+
+**Heap Sort**
+
+* Best case: O(n log n)
+* Worst case: O(n log n)
+* Average case: O(n log n)
+
+**Bubble Sort**
+
+* Best case: O(n)
+* Worst case: O(n²)
+* Average case: O(n²)
+
+**Insertion Sort**
+
+* Best case: O(n)
+* Worst case: O(n²)
+* Average case: O(n²)
+
+**Selection Sort**
+
+* Best case: O(n²)
+* Worst case: O(n²)
+* Average case: O(n²)
+
+**Counting Sort**
+
+* Best case: O(n + k)
+* Worst case: O(n + k)
+* Average case: O(n + k)
+
+**Radix Sort**
+
+* Best case: O(nk)
+* Worst case: O(nk)
+* Average case: O(nk)
+
+**Bucket Sort**
+
+* Best case: O(n + k)
+* Worst case: O(n²)
+* Average case: O(n + k)
+
+**Tim Sort**
+
+* Best case: O(n)
+* Worst case: O(n log n)
+* Average case: O(n log n)
+
+
+
+## Searching Algorithms
+
+**Linear Search**
+
+* Best case: O(1)
+* Worst case: O(n)
+* Average case: O(n)
+
+**Binary Search**
+
+* Best case: O(1)
+* Worst case: O(log n)
+* Average case: O(log n)
+
+**Jump Search**
+
+* Best case: O(1)
+* Worst case: O(√n)
+* Average case: O(√n)
+
+**Interpolation Search**
+
+* Best case: O(1)
+* Worst case: O(n)
+* Average case: O(log log n)
+
+**Exponential Search**
+
+* Best case: O(1)
+* Worst case: O(log n)
+* Average case: O(log n)
+
+
+
+## Graph Algorithms
+
+**Breadth-First Search (BFS)**
+
+* Best case: O(V + E)
+* Worst case: O(V + E)
+* Average case: O(V + E)
+
+**Depth-First Search (DFS)**
+
+* Best case: O(V + E)
+* Worst case: O(V + E)
+* Average case: O(V + E)
+
+**Dijkstra’s Algorithm**
+
+* Best case: O((V + E) log V)
+* Worst case: O((V + E) log V)
+* Average case: O((V + E) log V)
+
+**Bellman-Ford Algorithm**
+
+* Best case: O(VE)
+* Worst case: O(VE)
+* Average case: O(VE)
+
+**Floyd-Warshall Algorithm**
+
+* Best case: O(V³)
+* Worst case: O(V³)
+* Average case: O(V³)
+
+**Kruskal’s Algorithm**
+
+* Best case: O(E log E)
+* Worst case: O(E log E)
+* Average case: O(E log E)
+
+**Prim’s Algorithm**
+
+* Best case: O(E log V)
+* Worst case: O(E log V)
+* Average case: O(E log V)
+
+**Topological Sort**
+
+* Best case: O(V + E)
+* Worst case: O(V + E)
+* Average case: O(V + E)
+
+
+
+## Dynamic Programming
+
+**Fibonacci (DP)**
+
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
+
+**0/1 Knapsack**
+
+* Best case: O(nW)
+* Worst case: O(nW)
+* Average case: O(nW)
+
+**Longest Common Subsequence (LCS)**
+
+* Best case: O(mn)
+* Worst case: O(mn)
+* Average case: O(mn)
+
+**Longest Increasing Subsequence (LIS)**
+
+* Best case: O(n log n)
+* Worst case: O(n²)
+* Average case: O(n log n)
+
+**Matrix Chain Multiplication**
+
+* Best case: O(n³)
+* Worst case: O(n³)
+* Average case: O(n³)
+
+**Coin Change**
+
+* Best case: O(n * amount)
+* Worst case: O(n * amount)
+* Average case: O(n * amount)
+
+
+
+## Tree Algorithms
+
+**Tree Traversal (Inorder, Preorder, Postorder)**
+
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
+
+**Level Order Traversal**
+
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
+
+**Binary Search Tree Operations**
+
+* Best case: O(log n)
+* Worst case: O(n)
+* Average case: O(log n)
+
+**AVL Tree Operations**
+
+* Best case: O(log n)
+* Worst case: O(log n)
+* Average case: O(log n)
+
+**Red-Black Tree Operations**
+
+* Best case: O(log n)
+* Worst case: O(log n)
+* Average case: O(log n)
+
+
+
+## String Algorithms
+
+**Naive Pattern Matching**
+
+* Best case: O(n)
+* Worst case: O(nm)
+* Average case: O(nm)
+
+**KMP Algorithm**
+
+* Best case: O(n + m)
+* Worst case: O(n + m)
+* Average case: O(n + m)
+
+**Rabin-Karp Algorithm**
+
+* Best case: O(n + m)
+* Worst case: O(nm)
+* Average case: O(n + m)
+
+**Z Algorithm**
+
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
+
+
+
+## Greedy Algorithms
+
+**Activity Selection**
+
+* Best case: O(n log n)
+* Worst case: O(n log n)
+* Average case: O(n log n)
+
+**Huffman Coding**
+
+* Best case: O(n log n)
+* Worst case: O(n log n)
+* Average case: O(n log n)
+
+
+
+## Backtracking
+
+**N-Queens**
+
+* Best case: O(n!)
+* Worst case: O(n!)
+* Average case: O(n!)
+
+**Sudoku Solver**
+
+* Best case: O(1)
+* Worst case: O(9^(n*n))
+* Average case: O(9^(n*n))
+
+
+
+## Core Data Structures (Operations)
+
+**Array**
+
+* Access: O(1)
+* Search: O(n)
+* Insert: O(n)
+* Delete: O(n)
+
+**Linked List**
+
+* Access: O(n)
+* Search: O(n)
+* Insert: O(1)
+* Delete: O(1)
+
+**Stack**
+
+* Push: O(1)
+* Pop: O(1)
+* Peek: O(1)
+
+**Queue**
+
+* Enqueue: O(1)
+* Dequeue: O(1)
+
+**Hash Table**
+
+* Search: O(1) average, O(n) worst
+* Insert: O(1) average
+* Delete: O(1) average
+
+**Heap (Priority Queue)**
+
+* Insert: O(log n)
+* Delete: O(log n)
+* Peek: O(1)
+
+**Trie**
+
+* Insert: O(L)
+* Search: O(L)
+* Delete: O(L)
+
+
+
+## Advanced Data Structures
+
+**Segment Tree**
+
+* Build: O(n)
+* Query: O(log n)
+* Update: O(log n)
+
+**Fenwick Tree (Binary Indexed Tree)**
+
+* Update: O(log n)
+* Query: O(log n)
+
+**Disjoint Set (Union-Find)**
+
+* Find: O(α(n))
+* Union: O(α(n))
+
+**Suffix Tree**
+
+* Build: O(n)
+* Search: O(m)
+
+**Suffix Array**
+
+* Build: O(n log n)
+* Search: O(m log n)
+
+
+
+## Misc Algorithms
+
+**Sliding Window**
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
+
+**Two Pointers**
+* Best case: O(n)
+* Worst case: O(n)
+* Average case: O(n)
