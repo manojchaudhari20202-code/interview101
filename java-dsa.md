@@ -412,7 +412,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 #### Summary Table
 
 | Concept | Core Idea |
-|||
+|---|---|
 | **Time Complexity** | How runtime scales with input size |
 | **Space Complexity** | How memory usage scales with input size |
 | **Big‑O** | Upper bound (worst‑case growth) |
@@ -457,6 +457,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 - Arrays.sort() for objects, Collections.sort() : TimSort
 - TreeMap, TreeSet : Red-Black Tree
 - PriorityQueue : Binary Heap
+- HashMap = Array + Hashing + LinkedList + Red-Black Tree + Bitwise Optimizations
 
 #### Core Data Structures (Operations)
 **Array**
