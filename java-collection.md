@@ -493,8 +493,6 @@ The `Map` interface stores **key‑value pairs**. Each key is unique, and each k
 
 The `Queue` interface represents a collection designed for **holding elements prior to processing** (typically FIFO). The `Deque` (Double‑Ended Queue) extends `Queue` to support insertion/removal at **both ends**. Java provides several implementations, including general‑purpose, special‑purpose, and **blocking** queues for concurrent programming.
 
-
-
 #### PriorityQueue
 - **Underlying structure:** Binary **heap** (array‑based)
 - **Key features:**
@@ -523,34 +521,30 @@ The `Queue` interface represents a collection designed for **holding elements pr
   - Slower than `ArrayDeque` for general queue/deque operations
   - Not thread‑safe
 
-
-
 #### Blocking Queues
-
 Blocking queues are designed for **producer‑consumer** scenarios. They support operations that wait (block) until the queue becomes non‑empty (when retrieving) or has space available (when inserting).
+- **ArrayBlockingQueue**
+	- **Underlying structure:** Fixed‑size **circular array**
+	- **Key features:**
+	  - **Bounded** – capacity is fixed at creation
+	  - **Fairness policy** – optional (if `true`, threads are granted access in FIFO order)
+	  - Supports optional **time‑out** methods (`offer(e, time, unit)`, `poll(time, unit)`)
+	  - One lock for both put and take (can be less scalable than `LinkedBlockingQueue`)
 
-##### ArrayBlockingQueue
-- **Underlying structure:** Fixed‑size **circular array**
-- **Key features:**
-  - **Bounded** – capacity is fixed at creation
-  - **Fairness policy** – optional (if `true`, threads are granted access in FIFO order)
-  - Supports optional **time‑out** methods (`offer(e, time, unit)`, `poll(time, unit)`)
-  - One lock for both put and take (can be less scalable than `LinkedBlockingQueue`)
+- **LinkedBlockingQueue**
+	- **Underlying structure:** Singly linked list of nodes
+	- **Key features:**
+	  - **Optionally bounded** (default capacity = `Integer.MAX_VALUE`)
+	  - Two separate locks (one for put, one for take) – higher throughput than `ArrayBlockingQueue` under contention
+	  - Allows `null`? **No** – `null` is not permitted (reserved for failure indication)
 
-##### LinkedBlockingQueue
-- **Underlying structure:** Singly linked list of nodes
-- **Key features:**
-  - **Optionally bounded** (default capacity = `Integer.MAX_VALUE`)
-  - Two separate locks (one for put, one for take) – higher throughput than `ArrayBlockingQueue` under contention
-  - Allows `null`? **No** – `null` is not permitted (reserved for failure indication)
-
-##### PriorityBlockingQueue
-- **Underlying structure:** Binary heap (like `PriorityQueue`) + blocking behaviour
-- **Key features:**
-  - **Unbounded** – can grow until memory exhaustion
-  - Elements are ordered by priority (natural or `Comparator`)
-  - **No `null`** allowed
-  - Uses `ReentrantLock` internally
+- **PriorityBlockingQueue**
+	- **Underlying structure:** Binary heap (like `PriorityQueue`) + blocking behaviour
+	- **Key features:**
+	  - **Unbounded** – can grow until memory exhaustion
+	  - Elements are ordered by priority (natural or `Comparator`)
+	  - **No `null`** allowed
+	  - Uses `ReentrantLock` internally
 
 ##### DelayQueue
 - **Underlying structure:** Uses a `PriorityQueue` internally
@@ -569,45 +563,44 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
   - `put()` blocks until another thread calls `take()`; `offer()` fails immediately if no waiting consumer
 
 ### Keywords
+- **FIFO / LIFO**
+	- **FIFO (First‑In‑First‑Out):** Standard queue behaviour – elements are removed in the order they were added. Example: `ArrayDeque` used as queue.
+	- **LIFO (Last‑In‑First‑Out):** Stack behaviour – last element added is the first removed. `Deque` with `push()`/`pop()` (e.g., `ArrayDeque` as stack).
 
-#### FIFO / LIFO
-- **FIFO (First‑In‑First‑Out):** Standard queue behaviour – elements are removed in the order they were added. Example: `ArrayDeque` used as queue.
-- **LIFO (Last‑In‑First‑Out):** Stack behaviour – last element added is the first removed. `Deque` with `push()`/`pop()` (e.g., `ArrayDeque` as stack).
+- **Heap (Min Heap / Max Heap)**
+	- A binary tree‑based data structure where the parent node is **smaller** (min‑heap) or **larger** (max‑heap) than its children.
+	- **`PriorityQueue`** uses a **min‑heap** by default (smallest element at head).
+	- A max‑heap can be achieved with a `Comparator.reverseOrder()`.
 
-#### Heap (Min Heap / Max Heap)
-- A binary tree‑based data structure where the parent node is **smaller** (min‑heap) or **larger** (max‑heap) than its children.
-- **`PriorityQueue`** uses a **min‑heap** by default (smallest element at head).
-- A max‑heap can be achieved with a `Comparator.reverseOrder()`.
+- **Priority Ordering**
+	- Elements are ordered not by insertion time but by their **priority** (natural order or custom `Comparator`).
+	- The **head** of the queue is the element with the **highest priority** (lowest value for min‑heap).
 
-#### Priority Ordering
-- Elements are ordered not by insertion time but by their **priority** (natural order or custom `Comparator`).
-- The **head** of the queue is the element with the **highest priority** (lowest value for min‑heap).
-
-#### Comparator‑based ordering
+- **Comparator‑based ordering**
 - Priority can be defined by passing a `Comparator` to the `PriorityQueue` (or `PriorityBlockingQueue`) constructor.
 - Example: `new PriorityQueue<>((a, b) -> b - a)` for max‑heap.
 
-#### Double‑ended queue (Deque)
-- Supports insertion/removal at **both ends**.
-- Methods: `addFirst()`, `addLast()`, `removeFirst()`, `removeLast()`, `offerFirst()`, `offerLast()`, `pollFirst()`, `pollLast()`, `getFirst()`, `getLast()`.
+- **Double‑ended queue (Deque)**
+	- Supports insertion/removal at **both ends**.
+	- Methods: `addFirst()`, `addLast()`, `removeFirst()`, `removeLast()`, `offerFirst()`, `offerLast()`, `pollFirst()`, `pollLast()`, `getFirst()`, `getLast()`.
 
-#### Circular Array
-- An array used with head and tail pointers that wrap around when reaching the end.
-- Used by `ArrayDeque` and `ArrayBlockingQueue` to efficiently use memory and avoid shifting elements.
+- **Circular Array**
+	- An array used with head and tail pointers that wrap around when reaching the end.
+	- Used by `ArrayDeque` and `ArrayBlockingQueue` to efficiently use memory and avoid shifting elements.
 
-#### Bounded vs Unbounded Queue
+- **Bounded vs Unbounded Queue**
 
 | Type | Meaning | Examples |
-|||-|
+|---|---|---|
 | **Bounded** | Has a fixed maximum capacity | `ArrayBlockingQueue`, `LinkedBlockingQueue` (if capacity specified) |
 | **Unbounded** | Can grow dynamically (limited only by memory) | `PriorityQueue`, `LinkedBlockingQueue` (default), `DelayQueue`, `PriorityBlockingQueue` |
 
 > **Note:** For unbounded blocking queues, `put()` never blocks because there is always “room” (theoretical capacity is `Integer.MAX_VALUE`). However, memory exhaustion is still possible.
 
-### Summary Table of Queue/Deque Implementations
+#### Summary Table of Queue/Deque Implementations
 
 | Implementation | Deque | Bounded | Blocking | Null Allowed | Thread‑safe | Ordering |
-|-|-||-|--|-|-|
+|---|---|---|---|---|---|---|
 | `PriorityQueue` | ❌ | ❌ (unbounded) | ❌ | ❌ | ❌ | Priority |
 | `ArrayDeque` | ✅ | ❌ | ❌ | ❌ | ❌ | FIFO/LIFO |
 | `LinkedList` | ✅ | ❌ | ❌ | ✅ | ❌ | FIFO/LIFO |
@@ -621,8 +614,6 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
 ## Iteration Mechanisms in Java Collections Framework
 
 Java provides multiple ways to traverse collections, each with different capabilities, safety guarantees, and use cases.
-
-
 
 #### Iterator
 - **Introduced in:** Java 2 (JDK 1.2) as part of the Collections Framework
