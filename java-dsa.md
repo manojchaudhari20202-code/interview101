@@ -435,18 +435,16 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | Type | Context | Best case | Worst case | Average case | 
 | --- | --- | --- | --- | --- |
 | Sorting Algorithms | Quicksort |  O(n log n) | O(n²) | O(n log n) |
+| Sorting Algorithms | Merge Sort |  O(n log n) | O(n log n)) | O(n log n) |
+| Sorting Algorithms | Heap Sort |  O(n log n) | O(n log n) | O(n log n) |
+| Sorting Algorithms | Bubble Sort |  O(n) | O(n²) | O(n²) |
+| Sorting Algorithms | Insertion Sort |  O(n) | O(n²) | O(n²) |
+| Sorting Algorithms | Selection Sort |  O(n²) | O(n²) | O(n²) |
+| Sorting Algorithms | Counting Sort |  O(n + k) | O(n + k) | O(n + k)) |
+| Sorting Algorithms | Radix Sort |  O(nk) | O(nk) | O(nk) |
+| Sorting Algorithms | Bucket Sort |  O(n + k) | O(n²) | O(n + k) |
+| Sorting Algorithms | Insertion Sort |  O(n) | O(n log n) | O(n log n) |
 
-
-
-
-| Implementation | When to Use | Ordering | Thread-Safe |
-|---|---|---|---|
-| `HashMap` | General purpose, fast lookup | Unordered | No |
-| `LinkedHashMap` | Insertion order + LRU cache | Insertion order | No |
-| `TreeMap` | Sorted keys, range queries | Sorted | No |
-| `ConcurrentHashMap` | High concurrency | Unordered | Yes |
-| `EnumMap` | Enum keys | Declaration order | No |
-| `WeakHashMap` | Cache with GC-friendly keys | Unordered | No |
 
 
 
