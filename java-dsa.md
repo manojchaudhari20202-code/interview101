@@ -435,7 +435,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | Type | Context | Best case | Worst case | Average case | 
 | --- | --- | --- | --- | --- |
 | Sorting Algorithms | Quicksort |  O(n log n) | O(n²) | O(n log n) |
-| Sorting Algorithms | Merge Sort |  O(n log n) | O(n log n)) | O(n log n) |
+| Sorting Algorithms | Merge Sort |  O(n log n) | O(n log n) | O(n log n) |
 | Sorting Algorithms | Heap Sort |  O(n log n) | O(n log n) | O(n log n) |
 | Sorting Algorithms | Bubble Sort |  O(n) | O(n²) | O(n²) |
 | Sorting Algorithms | Insertion Sort |  O(n) | O(n²) | O(n²) |
@@ -443,11 +443,27 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | Sorting Algorithms | Counting Sort |  O(n + k) | O(n + k) | O(n + k)) |
 | Sorting Algorithms | Radix Sort |  O(nk) | O(nk) | O(nk) |
 | Sorting Algorithms | Bucket Sort |  O(n + k) | O(n²) | O(n + k) |
-| Sorting Algorithms | Insertion Sort |  O(n) | O(n log n) | O(n log n) |
+| Sorting Algorithms | Tim Sort |  O(n) | O(n log n) | O(n log n) |
 
+| Searching Algorithms | Linear Search |  O(1) | O(n) | O(n) |
+| Searching Algorithms | Binary Search |  O(1) | O(log n) | O(log n) |
+| Searching Algorithms | Jump Search |  O(1) | O(√n) | O(√n) |
+| Searching Algorithms | Interpolation Search |  O(1) | O(n) | O(log log n) |
+| Searching Algorithms | Exponential Search |  O(1) | O(log n) | O(log n) |
 
-
-
+| Graph Algorithms | Breadth-First Search (BFS) |  O(n²) | O(n²) | O(n²) |
+| Graph Algorithms | Depth-First Search (DFS) |  O(n + k) | O(n + k) | O(n + k)) |
+| Graph Algorithms | Dijkstra’s Algorithm |  O(nk) | O(nk) | O(nk) |
+| Graph Algorithms | Bellman-Ford Algorithm |  O(n + k) | O(n²) | O(n + k) |
+| Graph Algorithms | Floyd-Warshall Algorithm |  O(n) | O(n log n) | O(n log n) |
+| Graph Algorithms | Kruskal’s Algorithm |  O(nk) | O(nk) | O(nk) |
+| Graph Algorithms | Prim’s Algorithm |  O(n + k) | O(n²) | O(n + k) |
+| Graph Algorithms | Topological Sort |  O(n) | O(n log n) | O(n log n) |
+| Tree Algorithms | Tree Traversal (Inorder, Preorder, Postorder) |  O(n log n) | O(n²) | O(n log n) |
+| Tree Algorithms | Level Order Traversal |  O(n log n) | O(n log n)) | O(n log n) |
+| Tree Algorithms | Binary Search Tree Operations |  O(n log n) | O(n log n) | O(n log n) |
+| Tree Algorithms | AVL Tree Operations |  O(n) | O(n²) | O(n²) |
+| Tree Algorithms | Red-Black Tree Operations |  O(n) | O(n²) | O(n²) |
 
 
 ### Sorting Algorithms
