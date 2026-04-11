@@ -685,49 +685,49 @@ Java provides multiple ways to traverse collections, each with different capabil
   - **Parallelism** – easy to parallelise via `parallelStream()`
 - **Example:** `list.stream().filter(x -> x > 0).map(...).forEach(System.out::println)`
 
-### Keywords
+#### Keywords
 
-#### Fail‑fast behavior
-- Iterators that throw `ConcurrentModificationException` when they detect that the collection has been structurally modified (outside the iterator’s own `remove()`) during iteration.
-- Implemented by maintaining a **modCount** (modification counter) in the collection and checking it against an expected value stored in the iterator.
-- Applies to all non‑concurrent collections in `java.util` (e.g., `ArrayList`, `HashSet`, `HashMap` key sets).
+- **Fail‑fast behavior**
+	- Iterators that throw `ConcurrentModificationException` when they detect that the collection has been structurally modified (outside the iterator’s own `remove()`) during iteration.
+	- Implemented by maintaining a **modCount** (modification counter) in the collection and checking it against an expected value stored in the iterator.
+	- Applies to all non‑concurrent collections in `java.util` (e.g., `ArrayList`, `HashSet`, `HashMap` key sets).
 
-#### ConcurrentModificationException
-- A `RuntimeException` thrown by fail‑fast iterators when concurrent modification is detected.
-- Can occur in **single‑threaded** code (e.g., removing an element directly from a list while iterating over it with for‑each) and **multi‑threaded** code (modifying a shared collection without proper synchronisation).
+- **ConcurrentModificationException**
+	- A `RuntimeException` thrown by fail‑fast iterators when concurrent modification is detected.
+	- Can occur in **single‑threaded** code (e.g., removing an element directly from a list while iterating over it with for‑each) and **multi‑threaded** code (modifying a shared collection without proper synchronisation).
 
-#### remove() safe operation
-- The **only safe way** to remove an element from a collection while iterating is to use the iterator’s own `remove()` method.
-- Example:
-  ```java
-  Iterator<String> it = list.iterator();
-  while (it.hasNext()) {
-      if (condition) it.remove(); // safe
-  }
-  ```
-- Using `list.remove(index)` or `list.remove(element)` inside a for‑each loop throws `ConcurrentModificationException`.
+- **remove() safe operation**
+	- The **only safe way** to remove an element from a collection while iterating is to use the iterator’s own `remove()` method.
+	- Example:
+	  ```java
+	  Iterator<String> it = list.iterator();
+	  while (it.hasNext()) {
+		  if (condition) it.remove(); // safe
+	  }
+	  ```
+	- Using `list.remove(index)` or `list.remove(element)` inside a for‑each loop throws `ConcurrentModificationException`.
 
-#### Bidirectional iteration
-- The ability to traverse a collection **both forward and backward**.
-- Provided by `ListIterator`.
-- Allows `next()` and `previous()` interleaved, as well as moving by index.
+- **Bidirectional iteration**
+	- The ability to traverse a collection **both forward and backward**.
+	- Provided by `ListIterator`.
+	- Allows `next()` and `previous()` interleaved, as well as moving by index.
 
-#### Lazy iteration
-- Elements are computed or fetched **on‑demand**, not all at once.
-- Stream API intermediate operations (e.g., `filter`, `map`) are **lazy** – they do nothing until a terminal operation (e.g., `forEach`, `collect`) is invoked.
-- Allows infinite streams (`Stream.iterate()`, `Stream.generate()`) combined with short‑circuiting (`limit()`, `findFirst()`).
+- **Lazy iteration**
+	- Elements are computed or fetched **on‑demand**, not all at once.
+	- Stream API intermediate operations (e.g., `filter`, `map`) are **lazy** – they do nothing until a terminal operation (e.g., `forEach`, `collect`) is invoked.
+	- Allows infinite streams (`Stream.iterate()`, `Stream.generate()`) combined with short‑circuiting (`limit()`, `findFirst()`).
 
-#### Parallel iteration
-- Processing elements **simultaneously** across multiple CPU cores.
-- Achieved via:
-  - `parallelStream()` – splits the source using `Spliterator`
-  - `Spliterator.trySplit()` – recursively splits the data for work‑stealing
-- **Caution:** Not always faster; overhead of splitting and combining can outweigh benefits for small collections or simple operations. Must be thread‑safe (no shared mutable state).
+- **Parallel iteration**
+	- Processing elements **simultaneously** across multiple CPU cores.
+	- Achieved via:
+	  - `parallelStream()` – splits the source using `Spliterator`
+	  - `Spliterator.trySplit()` – recursively splits the data for work‑stealing
+	- **Caution:** Not always faster; overhead of splitting and combining can outweigh benefits for small collections or simple operations. Must be thread‑safe (no shared mutable state).
 
-### Comparison Table
+#### Comparison Table
 
 | Mechanism | Bidirectional | Modification | Fail‑fast | Parallel | Lazy | Works on |
-|--||--|--|-||-|
+|---|---|---|---|---|---|---|
 | `Iterator` | ❌ | `remove()` only | ✅ | ❌ | ❌ | All `Collection` |
 | `ListIterator` | ✅ | `add()`, `set()`, `remove()` | ✅ | ❌ | ❌ | `List` only |
 | `Enumeration` | ❌ | ❌ | ❌ (legacy) | ❌ | ❌ | `Vector`, `Hashtable`, `Stack` |
@@ -867,7 +867,7 @@ When multiple threads access a collection concurrently, **thread safety** become
 
 
 
-## Summary Table
+#### Summary Table
 
 | Approach | Example | Lock Granularity | Iteration Safety | Best For |
 |---|---|---|---|---|
