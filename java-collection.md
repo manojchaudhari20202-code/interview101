@@ -12,7 +12,7 @@ A unified architecture for storing and manipulating groups of objects. It includ
 
 #### Collection vs Collections vs Arrays
 | Term | Meaning |
-|------|---------|
+|||
 | **`Collection`** | Root interface in the collection hierarchy (extends `Iterable`). Represents a group of objects (elements). |
 | **`Collections`** | A utility class with static methods that operate on or return collections (e.g., `sort()`, `synchronizedList()`, `unmodifiableList()`). |
 | **`Arrays`** | A utility class for working with primitive and object arrays (e.g., `asList()`, `sort()`, `binarySearch()`). |
@@ -162,7 +162,7 @@ Map (java.util) – separate root
 #### Key Relationships Summary
 
 | Interface | Extends | Added Semantics |
-|-----------|---------|----------------|
+|--||-|
 | `Collection` | `Iterable` | Basic group of elements |
 | `List` | `Collection` | Ordered, indexed, duplicates allowed |
 | `Set` | `Collection` | No duplicates |
@@ -220,7 +220,7 @@ The Java Collections Framework provides several `List` implementations, each wit
 #### Keywords Summary
 
 | Keyword / Concept | Meaning |
-|-------------------|---------|
+|-||
 | **Dynamic Array** | Array that grows automatically when full |
 | **Resizable Array** | Synonym for dynamic array |
 | **Random Access** | Direct access to any element by index in O(1) – e.g., `ArrayList` |
@@ -239,7 +239,7 @@ The Java Collections Framework provides several `List` implementations, each wit
 
 The `Set` interface enforces **uniqueness** – no duplicate elements. Different implementations offer different ordering, performance, and special‑purpose behaviour.
 
----
+
 
 #### HashSet
 - **Underlying structure:** Hash table (actually a `HashMap` where values are dummy objects)
@@ -312,7 +312,7 @@ The `Set` interface enforces **uniqueness** – no duplicate elements. Different
 #### Ordering vs Sorting
 
 | Term | Meaning | Example |
-|------|---------|---------|
+||||
 | **Ordering** | Any predictable sequence of iteration | Insertion order (`LinkedHashSet`), natural enum order (`EnumSet`) |
 | **Sorting** | Order defined by element comparison (`Comparable` or `Comparator`) | `TreeSet` (sorted) |
 
@@ -329,7 +329,7 @@ The `Set` interface enforces **uniqueness** – no duplicate elements. Different
 #### Comparator vs Comparable
 
 | Feature | `Comparable` | `Comparator` |
-|---------|-------------|--------------|
+||-|--|
 | **Where defined** | Inside the class (`this` compared to another) | External separate class or lambda |
 | **Method** | `int compareTo(T o)` | `int compare(T o1, T o2)` |
 | **Single vs multiple** | One natural ordering per class | Many custom orderings possible |
@@ -466,7 +466,7 @@ The `Map` interface stores **key‑value pairs**. Each key is unique, and each k
 #### Access Order vs Insertion Order
 
 | Order Type | Meaning | Used by |
-|------------|---------|---------|
+||||
 | **Insertion Order** | Elements iterated in the order they were added | `LinkedHashMap` (default) |
 | **Access Order** | Elements ordered from least‑recently accessed to most‑recently accessed | `LinkedHashMap` with `accessOrder=true`; used for LRU caches |
 
@@ -477,7 +477,7 @@ The `Map` interface stores **key‑value pairs**. Each key is unique, and each k
 #### Null Keys / Values rules
 
 | Implementation | Null Keys | Null Values |
-|----------------|-----------|-------------|
+|-|--|-|
 | `HashMap` | 1 allowed | many allowed |
 | `LinkedHashMap` | 1 allowed | many allowed |
 | `TreeMap` | ❌ (unless comparator handles it) | allowed (if key not null) |
@@ -493,7 +493,7 @@ The `Map` interface stores **key‑value pairs**. Each key is unique, and each k
 
 The `Queue` interface represents a collection designed for **holding elements prior to processing** (typically FIFO). The `Deque` (Double‑Ended Queue) extends `Queue` to support insertion/removal at **both ends**. Java provides several implementations, including general‑purpose, special‑purpose, and **blocking** queues for concurrent programming.
 
----
+
 
 #### PriorityQueue
 - **Underlying structure:** Binary **heap** (array‑based)
@@ -523,7 +523,7 @@ The `Queue` interface represents a collection designed for **holding elements pr
   - Slower than `ArrayDeque` for general queue/deque operations
   - Not thread‑safe
 
----
+
 
 #### Blocking Queues
 
@@ -598,7 +598,7 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
 #### Bounded vs Unbounded Queue
 
 | Type | Meaning | Examples |
-|------|---------|----------|
+|||-|
 | **Bounded** | Has a fixed maximum capacity | `ArrayBlockingQueue`, `LinkedBlockingQueue` (if capacity specified) |
 | **Unbounded** | Can grow dynamically (limited only by memory) | `PriorityQueue`, `LinkedBlockingQueue` (default), `DelayQueue`, `PriorityBlockingQueue` |
 
@@ -607,7 +607,7 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
 ### Summary Table of Queue/Deque Implementations
 
 | Implementation | Deque | Bounded | Blocking | Null Allowed | Thread‑safe | Ordering |
-|----------------|-------|---------|----------|--------------|-------------|----------|
+|-|-||-|--|-|-|
 | `PriorityQueue` | ❌ | ❌ (unbounded) | ❌ | ❌ | ❌ | Priority |
 | `ArrayDeque` | ✅ | ❌ | ❌ | ❌ | ❌ | FIFO/LIFO |
 | `LinkedList` | ✅ | ❌ | ❌ | ✅ | ❌ | FIFO/LIFO |
@@ -622,7 +622,7 @@ Blocking queues are designed for **producer‑consumer** scenarios. They support
 
 Java provides multiple ways to traverse collections, each with different capabilities, safety guarantees, and use cases.
 
----
+
 
 #### Iterator
 - **Introduced in:** Java 2 (JDK 1.2) as part of the Collections Framework
@@ -727,7 +727,7 @@ Java provides multiple ways to traverse collections, each with different capabil
 ### Comparison Table
 
 | Mechanism | Bidirectional | Modification | Fail‑fast | Parallel | Lazy | Works on |
-|-----------|---------------|--------------|-----------|----------|------|----------|
+|--||--|--|-||-|
 | `Iterator` | ❌ | `remove()` only | ✅ | ❌ | ❌ | All `Collection` |
 | `ListIterator` | ✅ | `add()`, `set()`, `remove()` | ✅ | ❌ | ❌ | `List` only |
 | `Enumeration` | ❌ | ❌ | ❌ (legacy) | ❌ | ❌ | `Vector`, `Hashtable`, `Stack` |
@@ -737,3 +737,142 @@ Java provides multiple ways to traverse collections, each with different capabil
 
 > **Note:** Stream API does not modify the source; if you need to modify, use `Iterator` or collect into a new collection.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Synchronization & Thread Safety in Java Collections
+
+When multiple threads access a collection concurrently, **thread safety** becomes critical. Java provides two main approaches: **synchronized collections** (wrapping legacy collections) and **concurrent collections** (designed from the ground up for concurrency).
+
+#### Synchronized Collections
+
+- **What they are:** Regular collections (e.g., `ArrayList`, `HashMap`) wrapped by a **synchronisation wrapper** that makes every method `synchronized`.
+- **How to obtain:** `Collections.synchronizedXxx()` factory methods.
+- **Characteristics:**
+  - **Coarse‑grained locking** – the entire collection object is locked on every operation.
+  - **Thread‑safe** but may suffer from contention under high concurrency.
+  - **Iterators are not thread‑safe** – you must manually synchronize iteration:
+    ```java
+    List<String> syncList = Collections.synchronizedList(new ArrayList<>());
+    synchronized (syncList) {
+        for (String s : syncList) { ... }
+    }
+    ```
+- **Drawback:** Poor scalability; all threads wait for a single lock.
+
+#### Collections.synchronizedList
+
+- **Usage:** `List<T> list = Collections.synchronizedList(new ArrayList<>());`
+- **Behaviour:** Every method (`add`, `get`, `remove`, etc.) is guarded by a `synchronized` block on the wrapper object.
+- **Iteration:** Must synchronize externally on the list instance.
+- **When to use:** Low concurrency, simple thread‑safety requirements, or when retrofitting legacy code.
+
+#### Collections.synchronizedMap
+
+- **Usage:** `Map<K,V> map = Collections.synchronizedMap(new HashMap<>());`
+- **Behaviour:** Similar to `synchronizedList` – all map operations are synchronized on the wrapper.
+- **Iteration:** Manual synchronization required for `keySet()`, `entrySet()`, etc.
+- **Alternative for higher concurrency:** `ConcurrentHashMap`.
+
+
+
+#### Concurrent Collections
+
+- **What they are:** Collections designed from the ground up for high concurrency, using **fine‑grained locking**, lock‑free techniques, or non‑blocking algorithms.
+- **Package:** `java.util.concurrent`
+- **Advantages:** Better scalability, lower contention, and **weakly consistent iterators** (no `ConcurrentModificationException`).
+- **Examples:** `ConcurrentHashMap`, `ConcurrentLinkedQueue`, `ConcurrentSkipListMap`, `CopyOnWriteArrayList`, etc.
+
+#### ConcurrentHashMap
+
+- **Most widely used concurrent map.**
+- **Internal design (Java 8+):**
+  - **Bucket‑level locking** (or **segment‑level** in older versions) – only the bucket being modified is locked, not the entire map.
+  - **Lock‑free reads** – `get()` does not block; uses `volatile` reads and atomic operations.
+  - **Treeification** – buckets with many collisions become balanced trees.
+- **Key features:**
+  - **No `null` keys or values** (throws `NullPointerException`).
+  - **Highly concurrent** – supports up to (theoretically) 16 parallel writes by default.
+  - **Iterators** are weakly consistent – reflect the state at creation time, no `ConcurrentModificationException`.
+  - **Atomic operations:** `putIfAbsent()`, `compute()`, `merge()`, `replace()`.
+- **Performance:** Outperforms `Collections.synchronizedMap` under most concurrent workloads.
+
+#### CopyOnWrite Collections
+
+- **Design principle:** When a collection is modified, it creates a **new copy** of the underlying array; reads are lock‑free and happen on the original array.
+- **Ideal for:** **Read‑heavy workloads** with very few writes.
+
+#### CopyOnWriteArrayList
+
+- **Implementation:** An `ArrayList` variant where all mutative operations (`add`, `set`, `remove`) create a fresh copy of the internal array.
+- **Characteristics:**
+  - **Thread‑safe** without explicit locking.
+  - **Reads are extremely fast** – no locking, no blocking.
+  - **Writes are expensive** – copying the entire array (O(n) time).
+  - **Iterators** are snapshot‑based – they see the list as it was when the iterator was created; modifications do not affect the iterator and no `ConcurrentModificationException` is thrown.
+- **Best use case:** Lists that are read frequently but modified rarely (e.g., listener lists, configuration data).
+
+#### CopyOnWriteArraySet
+
+- **Implementation:** A `Set` backed by a `CopyOnWriteArrayList` (delegates to it, using `addIfAbsent()` to ensure uniqueness).
+- **Characteristics:** Same as `CopyOnWriteArrayList` – read‑optimised, writes cause full array copy.
+- **Note:** Because uniqueness checks require scanning the array, writes are even more expensive than for `CopyOnWriteArrayList`.
+- **When to use:** Very small read‑mostly sets (e.g., sets of event listeners).
+
+
+
+#### Keywords
+
+- **Thread Safety**
+	- **Definition:** A class or object is thread‑safe if it behaves correctly when accessed by multiple threads concurrently, without requiring external synchronisation.
+	- **Achieved by:** Synchronised methods/blocks, lock‑free algorithms, immutable state, or thread‑local storage.
+
+- **Locking (segment‑level, bucket‑level)**
+	- **Segment‑level (pre‑Java 8 `ConcurrentHashMap`):** The map is divided into 16 segments, each with its own lock. Operations only lock the relevant segment.
+	- **Bucket‑level (Java 8+ `ConcurrentHashMap`):** Finer‑grained – each hash bucket has its own lock. Uses CAS (compare‑and‑swap) for updates where possible.
+
+- **Lock‑free reads**
+	- **Meaning:** Read operations do not acquire any locks and do not block.
+	- **How `ConcurrentHashMap` does it:** Keys and values are stored in `volatile` references; the `get()` method reads the bucket without locking, relying on memory visibility guarantees of `volatile`.
+
+- **Copy‑on‑write**
+	- **Pattern:** When a write occurs, a new copy of the data structure is created; readers continue using the old, unchanged copy. Once the write is complete, the reference is atomically updated to the new copy.
+	- **Trade‑off:** Excellent concurrency for reads; expensive writes.
+	- **Used by:** `CopyOnWriteArrayList`, `CopyOnWriteArraySet`.
+
+- **Read‑heavy workloads**
+	- **Definition:** Scenarios where read operations vastly outnumber write operations (e.g., 99% reads, 1% writes).
+	- **Best fit for:** CopyOnWrite collections and lock‑free read structures like `ConcurrentHashMap`.
+	- **Poor fit for:** Traditional locking that would block readers even when no writes are happening.
+
+- **Weakly consistent iterators**
+	- **Definition:** Iterators that do **not** throw `ConcurrentModificationException`. Instead, they reflect the state of the collection at the time the iterator was created (or at some point after), and may or may not see subsequent modifications.
+	- **Properties:**
+	  - Safe for concurrent use without external synchronisation.
+	  - No guarantee to see the latest updates.
+	  - No `ConcurrentModificationException`.
+	- **Examples:** Iterators from `ConcurrentHashMap`, `CopyOnWriteArrayList`, `ConcurrentLinkedQueue`.
+
+
+
+## Summary Table
+
+| Approach | Example | Lock Granularity | Iteration Safety | Best For |
+|---|---|---|---|---|
+| Synchronised wrapper | `Collections.synchronizedList` | Entire collection | Not safe (need external sync) | Low concurrency, simple needs |
+| Concurrent Map | `ConcurrentHashMap` | Bucket‑level / CAS | Weakly consistent | High concurrency, mixed reads/writes |
+| Copy‑on‑Write | `CopyOnWriteArrayList` | Write‑copy (no read locks) | Snapshot‑based (weakly consistent) | Read‑heavy, write‑rare |
+
+> **Tip:** For most concurrent scenarios, prefer `ConcurrentHashMap` over `Collections.synchronizedMap`. Use `CopyOnWriteArrayList` only when writes are very infrequent and you need safe iteration without locking.
