@@ -79,7 +79,7 @@ Fail‑fast iterators detect this and throw `ConcurrentModificationException` as
 
 The Java Collections Framework (JCF) organizes its core interfaces into a well‑defined hierarchy. **`Map`** is a fundamental part of the framework but does **not** extend `Collection` – it stands alongside the `Collection` hierarchy.
 
-### Simplified Hierarchy Diagram
+#### Simplified Hierarchy Diagram
 
 ```
 Iterable (java.lang)
