@@ -1,5 +1,4 @@
-
-#### [Back To Index](readme.md)
+#### [Back To Topics](readme.md)
 
 # Java Collection
 
