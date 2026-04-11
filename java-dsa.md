@@ -444,7 +444,6 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | Sorting Algorithms | Radix Sort |  O(nk) | O(nk) | O(nk) |
 | Sorting Algorithms | Bucket Sort |  O(n + k) | O(n²) | O(n + k) |
 | Sorting Algorithms | Tim Sort |  O(n) | O(n log n) | O(n log n) |
-
 | Searching Algorithms | Linear Search |  O(1) | O(n) | O(n) |
 | Searching Algorithms | Binary Search |  O(1) | O(log n) | O(log n) |
 | Searching Algorithms | Jump Search |  O(1) | O(√n) | O(√n) |
