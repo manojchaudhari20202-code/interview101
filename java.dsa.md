@@ -293,7 +293,7 @@
 
 
 
-### Core DSA Concepts
+## Core DSA Concepts
 
 Data Structures and Algorithms (DSA) form the foundation of efficient programming. This guide covers essential concepts for analysing and comparing algorithmic performance.
 
