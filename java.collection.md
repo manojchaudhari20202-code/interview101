@@ -736,3 +736,4 @@ Java provides multiple ways to traverse collections, each with different capabil
 | Stream API | ❌ | ❌ (immutable) | depends (for non‑concurrent sources) | ✅ | ✅ | Any `Collection`, arrays, generators |
 
 > **Note:** Stream API does not modify the source; if you need to modify, use `Iterator` or collect into a new collection.
+
