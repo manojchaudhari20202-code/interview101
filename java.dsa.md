@@ -1,3 +1,7 @@
+#### [Back To Topics](readme.md)
+
+# Java DSA
+
 
 ## Core DSA Concepts
 - Data Structures
@@ -289,36 +293,34 @@
 
 
 
-## Core DSA Concepts
+### Core DSA Concepts
 
 Data Structures and Algorithms (DSA) form the foundation of efficient programming. This guide covers essential concepts for analysing and comparing algorithmic performance.
 
-
-
-### ✿ Data Structures
+#### Data Structures
 - **Definition:** A specific way of organising, storing, and managing data to enable efficient access and modification.
 - **Examples:** Arrays, linked lists, stacks, queues, hash tables, trees, graphs.
 - **Choice depends on:** Operations needed (search, insert, delete), order requirements, memory constraints.
 
-### ✿ Algorithms
+#### Algorithms
 - **Definition:** A finite sequence of well‑defined, step‑by‑step instructions to solve a specific problem or perform a computation.
 - **Examples:** Sorting (quicksort, mergesort), searching (binary search), graph algorithms (Dijkstra, BFS).
 
 
 
-### ✿ Time Complexity
+#### Time Complexity
 - **Definition:** The amount of **computational time** an algorithm takes to run, expressed as a function of the input size `n`.
 - **Why it matters:** Predicts how an algorithm scales as input grows; helps compare algorithms before implementation.
 - **Measured in:** Number of basic operations (comparisons, assignments, arithmetic) – not wall‑clock seconds.
 
-### ✿ Space Complexity
+#### Space Complexity
 - **Definition:** The amount of **memory** an algorithm uses, expressed as a function of the input size `n`.
 - **Includes:** Input space (often ignored for complexity analysis) + auxiliary space (extra memory used by the algorithm).
 - **Trade‑off:** Sometimes we can trade space for time (e.g., memoisation in dynamic programming).
 
 
 
-### ✿ Big‑O, Big‑Theta, Big‑Omega
+#### Big‑O, Big‑Theta, Big‑Omega
 
 These are mathematical notations describing the **asymptotic behaviour** of functions (typically runtime or memory).
 
@@ -338,20 +340,20 @@ These are mathematical notations describing the **asymptotic behaviour** of func
 O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 ```
 
-### ✿ Amortized Analysis
+#### Amortized Analysis
 - **Definition:** Averaging the time (or space) taken over a **sequence of operations**, rather than considering each operation individually.
 - **Use case:** Some operations are expensive but rare; amortised analysis gives a realistic average cost.
 - **Example:** `ArrayList` / `vector` – most `add` operations are O(1), but when capacity is full, resizing (copying all elements) is O(n). Amortised over many additions, each `add` is still O(1).
 - **Methods:** Aggregate analysis, accounting method, potential method.
 
-### ✿ Asymptotic Analysis
+#### Asymptotic Analysis
 - **Definition:** Analysing algorithm performance as the input size `n` approaches **infinity**, ignoring constant factors and lower‑order terms.
 - **Focus:** Growth rate (how runtime changes with `n`), not absolute runtime.
 - **Why ignore constants?** They depend on hardware, language, compiler – asymptotic analysis gives a platform‑independent comparison.
 
 
 
-### ✿ Best / Average / Worst Case
+#### Best / Average / Worst Case
 
 | Case | Description | When used |
 ||-|--|
@@ -364,21 +366,21 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 - Worst case: O(n²) – pivot always smallest/largest (already sorted input)
 - Average case: O(n log n) – with random pivots
 
-### ✿ Input Size (n)
+#### Input Size (n)
 - **Definition:** The number of elements or the measure of the data that the algorithm processes.
 - **Examples:** Length of an array, number of nodes in a graph, number of bits in a number.
 - **Important:** Complexity is expressed **in terms of n**; doubling n gives insight into scaling behaviour.
 
 
 
-### ✿ Trade‑offs
+#### Trade‑offs
 - **Definition:** A situation where improving one aspect (e.g., time) degrades another (e.g., space, readability, simplicity).
 - **Common trade‑offs in DSA:**
   - **Time vs Space:** Use a hash table (more memory) for faster lookups vs a sorted array (less memory) with binary search.
   - **Readability vs Performance:** Simple linear search (readable) vs complex binary search (faster for sorted data).
   - **Implementation complexity:** Balanced trees (complex) vs hash tables (simpler average case).
 
-### ✿ In‑place vs Out‑of‑place
+#### In‑place vs Out‑of‑place
 
 | Term | Definition | Example |
 ||||
@@ -387,7 +389,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 
 **Note:** In‑place does **not** mean “no extra memory” – it means constant or very small extra memory (usually O(1) or O(log n)).
 
-### ✿ Stable vs Unstable algorithms
+#### Stable vs Unstable algorithms
 
 | Term | Definition | Example |
 ||||
@@ -396,7 +398,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 
 **Why stability matters:** Sorting by multiple keys (e.g., first sort by name, then by age) – stable sort keeps the previous ordering.
 
-### ✿ Deterministic vs Randomized
+#### Deterministic vs Randomized
 
 | Term | Definition | Pros / Cons |
 |||--|
@@ -407,9 +409,7 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 - Deterministic: Binary search, mergesort.
 - Randomized: Quickselect (random pivot), Monte Carlo algorithms, randomised primality testing.
 
-
-
-## Summary Table
+#### Summary Table
 
 | Concept | Core Idea |
 |||
@@ -420,5 +420,3 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ) < O(n!)
 | **In‑place** | O(1) extra space (modifies input) |
 | **Stable** | Preserves order of equal elements |
 | **Randomized** | Uses randomness to make decisions |
-
-Understanding these concepts allows you to choose the right data structure and algorithm for your constraints, predict performance, and write efficient, scalable code.

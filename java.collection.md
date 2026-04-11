@@ -4,7 +4,7 @@
 
 ## Core Collection Framework Concepts
 
-### Java Collections Framework (JCF)
+#### Java Collections Framework (JCF)
 A unified architecture for storing and manipulating groups of objects. It includes:
 - **Interfaces** (e.g., `Collection`, `List`, `Set`, `Queue`, `Deque`, `Map`)
 - **Implementations** (e.g., `ArrayList`, `HashSet`, `TreeMap`)
