@@ -1,5 +1,44 @@
 # Spring Boot 4 & Spring Framework 7 Annotations Interview Guide
 
+## Table of Contents
+
+1. [Core Spring Framework Annotations](#1-core-spring-framework-annotations)
+2. [Spring Boot 4 Core Annotations](#2-spring-boot-4-core-annotations)
+3. [Web & REST Annotations](#3-web--rest-annotations)
+4. [Validation Annotations](#4-validation-annotations)
+5. [Conditional Annotations](#5-conditional-annotations)
+6. [Data Access Annotations](#6-data-access-annotations)
+7. [AOP & Aspect Annotations](#7-aop--aspect-annotations)
+8. [Spring Security Annotations](#8-spring-security-annotations)
+9. [Testing Annotations](#9-testing-annotations)
+10. [Caching Annotations](#10-caching-annotations)
+11. [Scheduling Annotations](#11-scheduling-annotations)
+12. [Actuator & Monitoring Annotations](#12-actuator--monitoring-annotations)
+13. [Spring Boot 4 New Features](#13-spring-boot-4-new-features)
+14. [Common Annotation Combinations](#14-common-annotation-combinations)
+15. [Annotation Best Practices](#15-annotation-best-practices)
+16. [Spring Context Annotations](#16-spring-context-annotations)
+17. [AspectJ Annotations](#17-aspectj-annotations)
+18. [JMS, Redis, RocksDB, and Kafka Annotations](#18-jms-redis-rocksdb-and-kafka-annotations)
+19. [Spring Cloud Annotations](#19-spring-cloud-annotations)
+20. [Advanced Spring Data Annotations](#20-advanced-spring-data-annotations)
+21. [Spring WebFlux & Reactive Annotations](#21-spring-webflux--reactive-annotations)
+22. [GraphQL Annotations](#22-graphql-annotations)
+23. [REST Microservices Annotations](#23-rest-microservices-annotations)
+24. [gRPC Annotations](#24-grpc-annotations)
+25. [Resilience4j Annotations](#25-resilience4j-annotations)
+26. [Microservices Design Patterns](#26-microservices-design-patterns)
+27. [System Design Patterns & Principles](#27-system-design-patterns--principles)
+28. [Domain-Driven Design (DDD) Annotations](#28-domain-driven-design-ddd-annotations)
+29. [Object-Oriented Modeling & Design (OOMD)](#29-object-oriented-modeling--design-oomd)
+30. [Hibernate Annotations](#30-hibernate-annotations)
+31. [MyBatis Annotations](#31-mybatis-annotations)
+32. [Java JSR Annotations (Up to Java 26)](#32-java-jsr-annotations-up-to-java-26)
+33. [Guava Annotations](#33-guava-annotations)
+34. [Apache Commons Annotations](#34-apache-commons-annotations)
+35. [Logging Framework Annotations](#35-logging-framework-annotations)
+36. [Testing Annotations](#36-testing-annotations)
+
 ---
 
 ## 1. Core Spring Framework Annotations
@@ -176,7 +215,114 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
 
 ---
 
-## 4. Data Access Annotations
+## 5. Conditional Annotations
+
+### Spring Boot Conditional Annotations
+```java
+@ConditionalOnClass        // Bean exists if class is on classpath
+@ConditionalOnMissingClass // Bean exists if class is NOT on classpath
+@ConditionalOnBean         // Bean exists if another bean exists
+@ConditionalOnMissingBean  // Bean exists if another bean is missing
+@ConditionalOnProperty     // Bean exists based on property value
+@ConditionalOnResource     // Bean exists if resource is available
+@ConditionalOnWebApplication // Bean exists in web context
+@ConditionalOnNotWebApplication // Bean exists in non-web context
+@ConditionalOnJava         // Bean exists based on Java version
+@ConditionalOnJndi         // Bean exists if JNDI location exists
+@ConditionalOnExpression   // Bean exists based on SpEL expression
+@ConditionalOnCloudPlatform // Bean exists on specific cloud platform
+```
+
+### Conditional Examples
+```java
+@Bean
+@ConditionalOnProperty(name = "cache.enabled", havingValue = "true")
+public CacheManager cacheManager() {
+    return new ConcurrentMapCacheManager("users", "products");
+}
+
+@Bean
+@ConditionalOnClass(name = "redis.clients.jedis.Jedis")
+public RedisTemplate<String, Object> redisTemplate() {
+    return new RedisTemplate<>();
+}
+
+@Bean
+@ConditionalOnMissingBean(DataSource.class)
+public DataSource defaultDataSource() {
+    return new HikariDataSource();
+}
+
+@Configuration
+@ConditionalOnWebApplication
+public class WebConfiguration {
+    
+    @Bean
+    @ConditionalOnProperty(name = "cors.enabled", havingValue = "true")
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
+
+@Configuration
+@ConditionalOnNotWebApplication
+public class StandaloneConfiguration {
+    
+    @Bean
+    public CommandLineRunner commandLineRunner() {
+        return args -> System.out.println("Running in standalone mode");
+    }
+}
+```
+
+### Custom Conditional Annotations
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Conditional(OnDatabaseCondition.class)
+public @interface ConditionalOnDatabase {
+    String value() default "mysql";
+}
+
+public class OnDatabaseCondition implements Condition {
+    
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        Map<String, Object> attributes = metadata.getAnnotationAttributes(
+            ConditionalOnDatabase.class.getName());
+        String database = (String) attributes.get("value");
+        
+        String property = context.getEnvironment().getProperty("app.database.type");
+        return database.equals(property);
+    }
+}
+
+@Configuration
+public class DatabaseConfiguration {
+    
+    @Bean
+    @ConditionalOnDatabase("mysql")
+    public DataSource mysqlDataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    @ConditionalOnDatabase("postgresql")
+    public DataSource postgresqlDataSource() {
+        return new HikariDataSource();
+    }
+}
+```
+
+---
+
+## 6. Data Access Annotations
 
 ### JPA Entity Mapping
 ```java
@@ -695,7 +841,7 @@ public class AuditListener {
 
 ---
 
-## 5. Validation Annotations
+## 4. Validation Annotations
 
 ### Bean Validation (JSR-380)
 ```java
@@ -747,7 +893,615 @@ public @interface UniqueUsername {
 
 ---
 
-## 6. AOP & Aspect Annotations
+## 9. Testing Annotations
+
+### Spring Boot Testing Annotations
+```java
+@SpringBootTest         // Full Spring Boot test context
+@WebMvcTest            // Web layer test (controllers only)
+@DataJpaTest           // JPA repository test
+@JdbcTest              // JDBC repository test
+@DataMongoTest         // MongoDB test
+@RestClientTest        // REST client test
+@JsonTest              // JSON serialization test
+@MockBean              // Mock a bean in test context
+@MockitoBean           // Mockito mock bean (Spring Boot 3+)
+@SpyBean               // Spy on a bean in test context
+@TestConfiguration    // Test-specific configuration
+@TestPropertySource     // Test-specific properties
+@AutoConfigureTestDatabase // Auto-configure test database
+@AutoConfigureMockMvc   // Auto-configure MockMvc
+@AutoConfigureWebTestClient // Auto-configure WebTestClient
+```
+
+### JUnit 5 Testing Annotations
+```java
+@Test                  // Test method
+@DisplayName            // Test display name
+@ParameterizedTest      // Parameterized test
+@RepeatedTest           // Repeated test execution
+@Disabled               // Disabled test
+@Tag                    // Test tag for filtering
+@ExtendWith             // Register extension
+@TempDir               // Temporary directory
+@TestInstance         // Test instance lifecycle
+@BeforeAll             // Before all tests
+@AfterAll              // After all tests
+@BeforeEach            // Before each test
+@AfterEach             // After each test
+```
+
+### Testing Examples
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.jpa.hibernate.ddl-auto=create-drop"
+})
+public class UserControllerTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private UserService userService;
+    
+    @Test
+    @DisplayName("Should create user successfully")
+    void shouldCreateUser() throws Exception {
+        // Given
+        UserRequest request = new UserRequest("testuser", "test@example.com");
+        User createdUser = new User(1L, "testuser", "test@example.com");
+        
+        when(userService.createUser(any(UserRequest.class))).thenReturn(createdUser);
+        
+        // When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.username", is("testuser")));
+        
+        verify(userService).createUser(any(UserRequest.class));
+    }
+    
+    @ParameterizedTest
+    @ValueSource(strings = {"user1", "user2", "user3"})
+    @DisplayName("Should find user by username")
+    void shouldFindUserByUsername(String username) {
+        // Given
+        User user = new User(1L, username, username + "@example.com");
+        when(userService.findByUsername(username)).thenReturn(Optional.of(user));
+        
+        // When
+        Optional<User> result = userService.findByUsername(username);
+        
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals(username, result.get().getUsername());
+    }
+}
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+public class UserRepositoryTest {
+    
+    @Autowired
+    private TestEntityManager entityManager;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("Should find user by email")
+    void shouldFindByEmail() {
+        // Given
+        User user = new User("testuser", "test@example.com");
+        entityManager.persistAndFlush(user);
+        
+        // When
+        Optional<User> result = userRepository.findByEmail("test@example.com");
+        
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals("test@example.com", result.get().getEmail());
+    }
+    
+    @Test
+    @DisplayName("Should count users by status")
+    void shouldCountByStatus() {
+        // Given
+        User user1 = new User("user1", "user1@example.com");
+        user1.setStatus(UserStatus.ACTIVE);
+        
+        User user2 = new User("user2", "user2@example.com");
+        user2.setStatus(UserStatus.ACTIVE);
+        
+        User user3 = new User("user3", "user3@example.com");
+        user3.setStatus(UserStatus.INACTIVE);
+        
+        entityManager.persist(user1);
+        entityManager.persist(user2);
+        entityManager.persist(user3);
+        entityManager.flush();
+        
+        // When
+        Long activeCount = userRepository.countByStatus(UserStatus.ACTIVE);
+        
+        // Then
+        assertEquals(2L, activeCount);
+    }
+}
+```
+
+### Integration Testing
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+    "spring.cloud.config.enabled=false",
+    "spring.cloud.discovery.enabled=false"
+})
+public class UserIntegrationTest {
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("Should create and retrieve user via REST API")
+    void shouldCreateAndRetrieveUser() {
+        // Given
+        UserRequest request = new UserRequest("integrationuser", "integration@example.com");
+        
+        // When - Create user
+        ResponseEntity<User> createResponse = restTemplate.postForEntity(
+            "/api/users", request, User.class);
+        
+        // Then - Verify creation
+        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+        User createdUser = createResponse.getBody();
+        assertNotNull(createdUser);
+        assertEquals("integrationuser", createdUser.getUsername());
+        
+        // When - Retrieve user
+        ResponseEntity<User> getResponse = restTemplate.getForEntity(
+            "/api/users/" + createdUser.getId(), User.class);
+        
+        // Then - Verify retrieval
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        User retrievedUser = getResponse.getBody();
+        assertNotNull(retrievedUser);
+        assertEquals(createdUser.getId(), retrievedUser.getId());
+    }
+}
+
+---
+
+## 10. Caching Annotations
+
+### Cache Abstraction
+```java
+@EnableCaching          // Enable caching support
+@Cacheable             // Cache method result
+@CachePut              // Update cache with method result
+@CacheEvict            // Remove entry from cache
+@Caching               // Multiple cache operations
+@CacheConfig           // Class-level cache configuration
+```
+
+### Caching Examples
+```java
+@Service
+@CacheConfig(cacheNames = "users")
+public class UserService {
+    
+    @Cacheable(key = "#id")
+    public User findById(Long id) {
+        // Database lookup
+        return userRepository.findById(id);
+    }
+    
+    @CachePut(key = "#result.id")
+    public User updateUser(User user) {
+        // Update in database
+        return userRepository.save(user);
+    }
+    
+    @CacheEvict(key = "#id")
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+    
+    @CacheEvict(allEntries = true)
+    public void clearCache() {
+        // Clear all cache entries
+    }
+    
+    @Caching(
+        cacheable = @Cacheable(key = "#username"),
+        evict = @CacheEvict(key = "#result.id")
+    )
+    public User createOrUpdateUser(String username, User user) {
+        // Complex caching logic
+        return userRepository.save(user);
+    }
+}
+
+@Configuration
+@EnableCaching
+public class CacheConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(Arrays.asList(
+            new ConcurrentMapCache("users"),
+            new ConcurrentMapCache("products"),
+            new ConcurrentMapCache("orders")
+        ));
+        return cacheManager;
+    }
+    
+    @Bean
+    @ConditionalOnProperty(name = "cache.type", havingValue = "redis")
+    public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
+        return RedisCacheManager.builder(connectionFactory)
+            .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10)))
+            .build();
+    }
+}
+
+---
+
+## 11. Scheduling & Asynchronous Annotations
+
+### Scheduling
+```java
+@EnableScheduling        // Enable scheduled tasks
+@EnableAsync             // Enable async support
+@Scheduled              // Schedule method execution
+@Async                  // Async method execution
+@Timed                  // Timed execution
+@EventListener          // Event listener
+@AsyncEventListener      // Async event listener
+```
+
+### Scheduling Examples
+```java
+@Configuration
+@EnableScheduling
+@EnableAsync
+public class SchedulingConfig {
+    
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("async-");
+        executor.initialize();
+        return executor;
+    }
+    
+    @Bean
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newScheduledThreadPool(5);
+    }
+}
+
+@Service
+public class ScheduledTasks {
+    
+    private final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+    
+    @Scheduled(fixedRate = 5000) // Execute every 5 seconds
+    public void reportCurrentTime() {
+        log.info("The time is now {}", LocalDateTime.now());
+    }
+    
+    @Scheduled(fixedDelay = 10000) // Execute 10 seconds after previous completion
+    public void processBatch() {
+        log.info("Processing batch job");
+        // Batch processing logic
+    }
+    
+    @Scheduled(cron = "0 0 12 * * MON-FRI") // Weekdays at noon
+    public void weekdayNoonTask() {
+        log.info("Running weekday noon task");
+        // Business logic
+    }
+    
+    @Scheduled(cron = "${app.backup.cron:0 0 2 * * *}") // Configurable cron
+    public void backupDatabase() {
+        log.info("Starting database backup");
+        // Backup logic
+    }
+    
+    @Scheduled(initialDelay = 1000, fixedRate = 5000)
+    public void delayedAndRepeatedTask() {
+        log.info("Delayed and repeated task");
+    }
+}
+
+@Service
+public class AsyncService {
+    
+    private final Logger log = LoggerFactory.getLogger(AsyncService.class);
+    
+    @Async("taskExecutor")
+    public CompletableFuture<String> processAsync(String input) {
+        log.info("Processing {} asynchronously", input);
+        
+        try {
+            Thread.sleep(2000); // Simulate long-running task
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        return CompletableFuture.completedFuture("Processed: " + input);
+    }
+    
+    @Async
+    public void sendEmailAsync(String to, String subject, String body) {
+        log.info("Sending email to {}", to);
+        // Email sending logic
+    }
+    
+    @Async
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    public void unreliableOperation() {
+        // Operation that might fail
+        if (Math.random() > 0.7) {
+            throw new RuntimeException("Random failure");
+        }
+        log.info("Operation succeeded");
+    }
+}
+
+@Component
+public class EventListeners {
+    
+    @EventListener
+    @Async
+    public void handleUserCreated(UserCreatedEvent event) {
+        log.info("Handling user created event asynchronously: {}", event.getUserId());
+        // Send welcome email, update statistics, etc.
+    }
+    
+    @EventListener(condition = "#event.priority == 'HIGH'")
+    public void handleHighPriorityEvent(PriorityEvent event) {
+        log.info("Handling high priority event: {}", event.getMessage());
+        // Handle high priority events immediately
+    }
+    
+    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleAfterCommit(DomainEvent event) {
+        log.info("Handling event after transaction commit: {}", event.getType());
+        // Handle events only after successful transaction commit
+    }
+}
+
+---
+
+## 12. Spring Context Annotations
+
+### Application Context Management
+```java
+@Configuration          // Configuration class
+@ComponentScan         // Component scanning
+@Import                // Import configuration classes
+@PropertySource        // Load properties files
+@Profile               // Profile-based bean activation
+@ActiveProfiles        // Test profile activation
+@ContextConfiguration  // Test context configuration
+@TestPropertySource     // Test properties
+```
+
+### Context Examples
+```java
+@Configuration
+@ComponentScan(basePackages = "com.example")
+@PropertySource("classpath:application.properties")
+@Import({DatabaseConfig.class, SecurityConfig.class})
+public class ApplicationConfig {
+    
+    @Bean
+    @Profile("dev")
+    public DataSource devDataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    @Profile("prod")
+    public DataSource prodDataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+}
+
+@TestConfiguration
+@ActiveProfiles("test")
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.jpa.hibernate.ddl-auto=create-drop"
+})
+public class TestConfig {
+    
+    @Bean
+    @Primary
+    public DataSource testDataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.H2)
+            .build();
+    }
+}
+
+---
+
+## 13. Spring Boot 4 New Features
+
+### Native Image Support
+```java
+@NativeHint              // GraalVM native image hints
+@RegisterReflectionForBinding // Register for reflection
+@RegisterForReflection   // Register class for reflection
+```
+
+### Observability
+```java
+@Observed               // Micrometer observation
+@Timed                  // Timer metric
+@Counted                // Counter metric
+@Gauge                  // Gauge metric
+```
+
+### Spring Boot 4 Examples
+```java
+@RestController
+public class UserController {
+    
+    @Observed(name = "user.find", contextualName = "find-user")
+    @GetMapping("/api/users/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+    
+    @Timed(name = "user.create", description = "Time taken to create user")
+    @Counted(name = "user.create.calls", description = "Number of user creation calls")
+    @PostMapping("/api/users")
+    public User createUser(@RequestBody UserRequest request) {
+        return userService.createUser(request);
+    }
+}
+
+@Configuration
+@RegisterReflectionForBinding({User.class, UserRequest.class})
+public class NativeConfiguration {
+    
+    @Bean
+    @RegisterForReflection
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}
+
+@Component
+public class MetricsComponent {
+    
+    private final MeterRegistry meterRegistry;
+    private final AtomicLong activeUsers = new AtomicLong(0);
+    
+    public MetricsComponent(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+        Gauge.builder("users.active", activeUsers, AtomicLong::get)
+            .description("Number of active users")
+            .register(meterRegistry);
+    }
+    
+    public void incrementActiveUsers() {
+        activeUsers.incrementAndGet();
+    }
+    
+    public void decrementActiveUsers() {
+        activeUsers.decrementAndGet();
+    }
+}
+
+---
+
+## 14. Common Annotation Combinations
+
+### REST Controller Pattern
+```java
+@RestController
+@RequestMapping("/api/users")
+@Validated
+public class UserController {
+    
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Page<User> getUsers(Pageable pageable) {
+        return userService.findAll(pageable);
+    }
+    
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public User createUser(@Valid @RequestBody UserRequest request) {
+        return userService.createUser(request);
+    }
+    
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public User updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
+        return userService.updateUser(id, request);
+    }
+    
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
+}
+
+---
+
+## 15. Annotation Best Practices
+
+### Configuration Organization
+- Use `@Configuration` classes for related beans
+- Group by functionality (database, security, web, etc.)
+- Use `@Profile` for environment-specific configurations
+- Apply `@ConditionalOn*` for optional features
+
+### Component Stereotypes
+- Use specific stereotypes (`@Service`, `@Repository`, `@Controller`) over generic `@Component`
+- Keep component names descriptive and consistent
+- Use `@Qualifier` only when necessary for disambiguation
+
+### Dependency Injection
+- Prefer constructor injection over field injection
+- Use `@Autowired` on constructors (optional in Spring 4.3+)
+- Use `@Lazy` for circular dependencies or expensive beans
+
+### Transaction Management
+- Apply `@Transactional` at service layer, not repository layer
+- Specify appropriate propagation and isolation levels
+- Use `@ReadOnly` for read-only operations
+
+### Security
+- Apply method security annotations at service layer
+- Use `@PreAuthorize` for complex authorization rules
+- Combine with `@Secured` for simple role-based access
+
+### Performance
+- Use `@Cacheable` for expensive, frequently called methods
+- Apply `@Async` for long-running, non-blocking operations
+- Use `@Scheduled` for periodic maintenance tasks
+
+### Testing
+- Use appropriate test slices (`@WebMvcTest`, `@DataJpaTest`)
+- Mock external dependencies with `@MockBean`
+- Use `@TestPropertySource` for test-specific configuration
+
+### Documentation
+- Use `@ApiModel` and `@ApiModelProperty` for API documentation
+- Apply `@Description` for custom annotations
+- Document complex conditional logic in Javadoc
+
+---
+
+## 7. AOP & Aspect Annotations
 
 ### Core Aspect Annotations
 ```java
@@ -883,39 +1637,10 @@ public class PerformanceAspect {
         return joinPoint.proceed();
     }
 }
-```
 
-### Custom Annotations with AOP
-```java
-// Custom annotation
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Cacheable {
-    String key() default "";
-    int ttl() default 300; // seconds
-}
+---
 
-// Aspect for custom annotation
-@Aspect
-@Component
-public class CacheAspect {
-    
-    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-    
-    @Around("@annotation(cacheable)")
-    public Object cacheResult(ProceedingJoinPoint joinPoint, Cacheable cacheable) throws Throwable {
-        String key = generateKey(joinPoint, cacheable.key());
-        
-        // Check cache
-        CacheEntry entry = cache.get(key);
-        if (entry != null && !entry.isExpired()) {
-            log.info("Cache hit for key: {}", key);
-            return entry.getValue();
-        }
-        
-        // Execute method and cache result
-        Object result = joinPoint.proceed();
-        cache.put(key, new CacheEntry(result, System.currentTimeMillis() + cacheable.ttl() * 1000));
+## 16. Configuration for AOP
         log.info("Cached result for key: {}", key);
         
         return result;
@@ -1157,7 +1882,7 @@ public class ComplexPointcutsAspect {
 
 ---
 
-## 15. AspectJ Annotations
+## 17. AspectJ Annotations
 
 ### AspectJ Core Annotations
 ```java
@@ -1711,7 +2436,7 @@ public class LoggingAspect {
 
 ---
 
-## 7. Security Annotations
+## 8. Spring Security Annotations
 
 ### Spring Security Core Configuration
 ```java
@@ -2159,7 +2884,7 @@ class UserControllerTest {
 
 ---
 
-## 8. Spring Core Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### Bean Definition & Configuration
 ```java
@@ -2279,7 +3004,7 @@ public class ApplicationEventHandler {
 
 ---
 
-## 9. Spring Web Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### HTTP Request Mapping
 ```java
@@ -2414,7 +3139,7 @@ public class WebConfig implements WebMvcConfigurer {
 
 ---
 
-## 10. Spring Boot Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### Application Configuration
 ```java
@@ -2507,7 +3232,7 @@ public class CustomEndpoint {
 
 ---
 
-## 11. Spring Scheduling Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### Scheduling Configuration
 ```java
@@ -2624,7 +3349,7 @@ public class EventBasedScheduler {
 
 ---
 
-## 12. Spring Data Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### JPA & Entity Mapping
 ```java
@@ -2732,7 +3457,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
 ---
 
-## 13. Spring Bean Annotations
+## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
 ### Bean Definition
 ```java
@@ -2852,7 +3577,7 @@ public class UserServiceImpl implements UserService {
 
 ---
 
-## 14. JMS (Java Message Service) Annotations
+## 18. JMS, Redis, RocksDB, and Kafka Annotations
 
 ### JMS Core Annotations
 ```java
@@ -2993,7 +3718,7 @@ public class JmsMessageSender {
 
 ---
 
-## 15. Redis Annotations
+## 18. JMS, Redis, RocksDB, and Kafka Annotations
 
 ### Redis Core Annotations
 ```java
@@ -3166,7 +3891,7 @@ public class RedisUserService {
 
 ---
 
-## 16. RocksDB Annotations
+## 18. JMS, Redis, RocksDB, and Kafka Annotations
 
 ### RocksDB Configuration
 ```java
@@ -3269,7 +3994,7 @@ public class RocksDBUserRepository {
 
 ---
 
-## 17. Kafka Annotations
+## 18. JMS, Redis, RocksDB, and Kafka Annotations
 
 ### Kafka Core Annotations
 ```java
@@ -3534,7 +4259,7 @@ public class MultiTypeKafkaHandler {
 
 ---
 
-## 18. Spring Cloud Annotations
+## 19. Spring Cloud Annotations
 
 ### Service Discovery & Registration
 ```java
@@ -3720,7 +4445,7 @@ public class AppConfig {
 
 ---
 
-## 19. Advanced Spring Data Annotations
+## 20. Advanced Spring Data Annotations
 
 ### MongoDB Annotations
 ```java
@@ -4085,7 +4810,7 @@ public interface AuditableRepository extends MongoRepository<AuditableDocument, 
 
 ---
 
-## 20. Spring WebFlux & Reactive Annotations
+## 21. Spring WebFlux & Reactive Annotations
 
 ### WebFlux Core Annotations
 ```java
@@ -4648,7 +5373,7 @@ public class WebFluxConfig {
 
 ---
 
-## 21. GraphQL Annotations
+## 22. GraphQL Annotations
 
 ### GraphQL Core Annotations
 ```java
@@ -4892,7 +5617,7 @@ public class GraphQLConfig {
 
 ---
 
-## 22. REST Microservices Annotations
+## 23. REST Microservices Annotations
 
 ### Microservice Core Annotations
 ```java
@@ -5070,7 +5795,7 @@ public class ConfigController {
 
 ---
 
-## 23. gRPC Annotations
+## 24. gRPC Annotations
 
 ### gRPC Core Annotations
 ```java
@@ -5445,7 +6170,7 @@ public class GrpcBridgeController {
 
 ---
 
-## 24. Resilience4j Annotations
+## 25. Resilience4j Annotations
 
 ### Resilience4j Core Annotations
 ```java
@@ -5698,7 +6423,7 @@ resilience4j:
 
 ---
 
-## 25. Microservices Design Patterns
+## 26. Microservices Design Patterns
 
 ### API Gateway Pattern
 ```java
@@ -6213,7 +6938,7 @@ public class ConfigController {
 
 ---
 
-## 26. System Design Patterns & Principles
+## 27. System Design Patterns & Principles
 
 ### SOLID Principles Implementation
 ```java
@@ -6526,7 +7251,7 @@ public class SortingService {
 
 ---
 
-## 27. Domain-Driven Design (DDD) Annotations
+## 28. Domain-Driven Design (DDD) Annotations
 
 ### DDD Core Concepts
 ```java
@@ -6856,7 +7581,7 @@ public class OrderApplicationService {
 
 ---
 
-## 28. Object-Oriented Modeling & Design (OOMD)
+## 29. Object-Oriented Modeling & Design (OOMD)
 
 ### Class Design Principles
 ```java
@@ -7294,7 +8019,7 @@ public class Wheel {
 
 ---
 
-## 29. Hibernate Annotations
+## 30. Hibernate Annotations
 
 ### Hibernate Core Annotations
 ```java
@@ -7742,7 +8467,7 @@ public class User {
 
 ---
 
-## 30. MyBatis Annotations
+## 31. MyBatis Annotations
 
 ### MyBatis Core Annotations
 ```java
@@ -8173,7 +8898,7 @@ public class UserSearchCriteria {
 
 ---
 
-## 31. Java JSR Annotations (Up to Java 26)
+## 32. Java JSR Annotations (Up to Java 26)
 
 ### JSR 250 (Common Annotations)
 ```java
@@ -8511,7 +9236,7 @@ public @interface RequestScope {
 
 ---
 
-## 32. Guava Annotations
+## 33. Guava Annotations
 
 ### Guava Core Annotations
 ```java
@@ -8641,7 +9366,7 @@ public class ThreadSafeEventBus {
 
 ---
 
-## 33. Apache Commons Annotations
+## 34. Apache Commons Annotations
 
 ### Commons Lang Annotations
 ```java
@@ -8793,7 +9518,7 @@ public class AdvancedFileUtils {
 
 ---
 
-## 34. Logging Framework Annotations
+## 35. Logging Framework Annotations
 
 ### SLF4J Annotations
 ```java
@@ -8974,7 +9699,7 @@ public class ConditionalLogger {
 
 ---
 
-## 35. Testing Annotations
+## 36. Testing Annotations
 
 ### Spring Boot Testing
 ```java
