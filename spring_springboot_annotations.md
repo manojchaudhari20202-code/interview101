@@ -37,7 +37,9 @@
 33. [Guava Annotations](#33-guava-annotations)
 34. [Apache Commons Annotations](#34-apache-commons-annotations)
 35. [Logging Framework Annotations](#35-logging-framework-annotations)
-36. [Testing Annotations](#36-testing-annotations)
+36. [Spring Integration Annotations](#36-spring-integration-annotations)
+37. [Spring Batch Annotations](#37-spring-batch-annotations)
+38. [Testing Annotations](#38-testing-annotations)
 
 ---
 
@@ -212,6 +214,179 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
 @CrossOrigin           // Enable CORS for controller/method
 @CrossOrigin(origins = "http://localhost:3000", methods = {GET, POST})
 ```
+
+---
+
+## 3. Web & REST Annotations
+
+### Request Mapping
+```java
+@RequestMapping          // Base URL mapping
+@GetMapping             // HTTP GET mapping
+@PostMapping            // HTTP POST mapping
+@PutMapping             // HTTP PUT mapping
+@DeleteMapping          // HTTP DELETE mapping
+@PatchMapping           // HTTP PATCH mapping
+@RequestHeader          // Bind HTTP header
+@PathVariable          // Path variable binding
+@RequestParam           // Request parameter binding
+@RequestBody            // Request body binding
+@RequestPart            // Multipart request part
+@CookieValue            // Cookie value binding
+```
+
+### REST Controller Examples
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return ResponseEntity.ok(user);
+    }
+    
+    @PostMapping
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserRequest request) {
+        User user = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, 
+                                       @Valid @RequestBody UserRequest request) {
+        User user = userService.updateUser(id, request);
+        return ResponseEntity.ok(user);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping
+    public ResponseEntity<Page<User>> getUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<User> users = userService.findAll(pageable);
+        return ResponseEntity.ok(users);
+    }
+}
+```
+
+### Request Parameters & Headers
+```java
+@RestController
+public class RequestController {
+    
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUsers(
+            @RequestParam String query,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestHeader("User-Agent") String userAgent) {
+        
+        List<User> users = userService.search(query, status, page);
+        return ResponseEntity.ok(users);
+    }
+    
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("description") String description) {
+        
+        String result = fileService.upload(file, description);
+        return ResponseEntity.ok(result);
+    }
+    
+    @GetMapping("/cookies")
+    public ResponseEntity<String> getCookieValue(@CookieValue("session") String sessionId) {
+        return ResponseEntity.ok("Session ID: " + sessionId);
+    }
+}
+```
+
+### Response Handling
+```java
+@RestController
+public class ResponseController {
+    
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        Optional<User> user = userService.findById(id);
+        
+        if (user.isPresent()) {
+            return ResponseEntity.ok()
+                .header("X-Custom-Header", "value")
+                .cacheControl(CacheControl.maxAge(300))
+                .body(user.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/download")
+    public ResponseEntity<Resource> downloadFile() {
+        Resource file = fileService.getFile();
+        
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=file.pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(file);
+    }
+    
+    @GetMapping("/status")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Map<String, Object> getStatus() {
+        return Map.of(
+            "status", "active",
+            "timestamp", System.currentTimeMillis()
+        );
+    }
+}
+```
+
+### Cross-Origin & CORS
+```java
+@RestController
+@CrossOrigin(origins = "http://localhost:3000", methods = {GET, POST})
+public class CorsController {
+    
+    @GetMapping("/public-data")
+    public ResponseEntity<String> getPublicData() {
+        return ResponseEntity.ok("Public data");
+    }
+    
+    @PostMapping("/submit-data")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<String> submitData(@RequestBody Data data) {
+        return ResponseEntity.ok("Data submitted");
+    }
+}
+
+@Configuration
+public class CorsConfig {
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
+```
+
+---
 
 ---
 
@@ -1627,7 +1802,7 @@ public class PerformanceAspect {
         }
     }
     
-    @Around("execution(* com.example.service.*.*(..)) && args(userId, ..)")
+    @Around("execution(* com.example.service.*.*(Long, ..)) && args(userId, ..)")
     public Object validateUserAccess(ProceedingJoinPoint joinPoint, Long userId) throws Throwable {
         // Validate user access before proceeding
         if (!securityService.hasAccess(getCurrentUser(), userId)) {
@@ -2886,7 +3061,7 @@ class UserControllerTest {
 
 ## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
 
-### Bean Definition & Configuration
+### Core Spring Annotations
 ```java
 @Component              // Generic Spring-managed bean
 @Service               // Service layer component
@@ -2895,118 +3070,105 @@ class UserControllerTest {
 @Configuration          // Configuration class
 @Bean                  // Bean definition method
 @Import                // Import configuration classes
-@ImportResource         // Import XML configuration
 @ComponentScan         // Component scanning
-@Lazy                  // Lazy bean initialization
-@Scope                 // Bean scope definition
-@Primary               // Primary bean candidate
+@Lazy                  // Lazy initialization
+@Primary               // Primary bean when multiple candidates exist
 @Qualifier             // Bean qualifier
-@DependsOn             // Bean dependency declaration
-@Order                 // Bean ordering
-@Profile               // Profile-specific bean
+@Scope                 // Bean scope (singleton, prototype, etc.)
+@DependsOn             // Depends on other beans
+@Profile               // Profile-based bean activation
+@Conditional           // Conditional bean creation
+@PropertySource        // Load properties file
+@Value                 // Property value injection
+@EventListener         // Event listener
+@Async                 // Async method execution
+@Scheduled             // Scheduled task execution
+@Timed                 // Timed execution
+@EnableScheduling       // Enable scheduled tasks
+@EnableAsync            // Enable async support
+@EnableConfigurationProperties // Enable configuration properties
 ```
 
-### Dependency Injection
+### Bean Scopes
 ```java
-@Autowired             // Auto-wire dependency
-@Inject                // JSR-330 injection
-@Resource              // JSR-250 injection (by name)
-@Value                 # Inject property values
-@Nullable              // Nullable dependency
-@NonNull               // Non-null dependency
+@Scope("singleton")      // Default scope - one instance per container
+@Scope("prototype")      // New instance for each injection
+@Scope("request")        // One instance per HTTP request
+@Scope("session")        // One instance per HTTP session
+@Scope("application")    // One instance per servlet context
+@Scope("websocket")      // One instance per WebSocket session
 ```
 
-### Core Examples
+### Bean Lifecycle
 ```java
-@Configuration
-@Import({DatabaseConfig.class, SecurityConfig.class})
-@ComponentScan(basePackages = "com.example")
-public class AppConfig {
-    
-    @Bean
-    @Primary
-    @Scope("prototype")
-    public UserService primaryUserService() {
-        return new UserServiceImpl();
-    }
-    
-    @Bean
-    @Lazy
-    @Qualifier("cacheService")
-    public CacheService cacheService() {
-        return new RedisCacheService();
-    }
-    
-    @Bean
-    @DependsOn("databaseInitializer")
-    public DataInitializer dataInitializer() {
-        return new DataInitializer();
-    }
-    
-    @Bean
-    @Order(1)
-    public CommandLineRunner initializerRunner() {
-        return args -> System.out.println("Initializing application...");
-    }
-}
-
-@Service
-@Profile("production")
-public class ProductionUserService implements UserService {
-    
-    @Autowired
-    @Qualifier("userRepository")
-    private UserRepository userRepository;
-    
-    @Value("${app.user.cache.enabled}")
-    private boolean cacheEnabled;
-    
-    @Inject
-    private CacheManager cacheManager;
-    
-    @Resource(name = "notificationService")
-    private NotificationService notificationService;
-}
-```
-
-### Lifecycle & Callbacks
-```java
-@PostConstruct          // Post-construction callback
-@PreDestroy           // Pre-destruction callback
-@EventListener        // Application event listener
-@Async                // Async method execution
-@Scheduled            // Scheduled task execution
-@Timed                // Timed execution (Micrometer)
+@PostConstruct          // After dependency injection
+@PreDestroy             // Before bean destruction
+@Bean(initMethod = "init", destroyMethod = "cleanup") // Custom lifecycle methods
 ```
 
 ### Event Handling
 ```java
+@EventListener          // Event listener method
+@AsyncEventListener      // Async event listener
+@TransactionalEventListener // Transactional event listener
+```
+
+### Configuration Examples
+```java
+@Configuration
+@ComponentScan(basePackages = "com.example")
+@PropertySource("classpath:application.properties")
+public class AppConfig {
+    
+    @Bean
+    @Primary
+    public DataSource primaryDataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    @Qualifier("secondary")
+    public DataSource secondaryDataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    @Scope("prototype")
+    @Lazy
+    public UserService userService() {
+        return new UserService();
+    }
+    
+    @Bean
+    @DependsOn("databaseInitializer")
+    public ApplicationService applicationService() {
+        return new ApplicationService();
+    }
+}
+
 @Component
-public class ApplicationEventHandler {
+public class EventHandlers {
     
     @EventListener
-    @Async
     public void handleUserCreated(UserCreatedEvent event) {
-        notificationService.sendWelcomeEmail(event.getUser());
+        log.info("User created: {}", event.getUser().getId());
     }
     
-    @EventListener(condition = "#event.success")
-    public void handleSuccessfulLogin(LoginEvent event) {
-        auditService.logSuccessfulLogin(event.getUser());
+    @AsyncEventListener
+    public void handleUserCreatedAsync(UserCreatedEvent event) {
+        // Async processing
+        emailService.sendWelcomeEmail(event.getUser());
     }
     
-    @EventListener
-    public void handleContextRefreshed(ContextRefreshedEvent event) {
-        log.info("Application context refreshed");
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleAfterCommit(DomainEvent event) {
+        // Process after successful commit
+        auditService.logEvent(event);
     }
 }
 ```
 
----
-
-## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
-
-### HTTP Request Mapping
+### Web & REST Annotations
 ```java
 @RequestMapping          // Base URL mapping
 @GetMapping             // HTTP GET mapping
@@ -3015,133 +3177,60 @@ public class ApplicationEventHandler {
 @DeleteMapping          // HTTP DELETE mapping
 @PatchMapping           // HTTP PATCH mapping
 @RequestHeader          // Bind HTTP header
-@CookieValue            # Bind HTTP cookie
-@PathVariable           # Bind URL path variable
-@RequestParam           # Bind request parameter
-@RequestBody            # Bind request body
-@RequestPart           # Bind multipart part
-@MatrixVariable        # Bind matrix variable
+@PathVariable          // Path variable binding
+@RequestParam           // Request parameter binding
+@RequestBody            // Request body binding
+@RequestPart            // Multipart request part
+@CookieValue            // Cookie value binding
+@SessionAttribute       // Session attribute binding
+@RequestAttribute       // Request attribute binding
+@MatrixVariable         // Matrix variable binding
 ```
 
-### Response Handling
-```java
-@ResponseBody          // Return response body
-@ResponseStatus        # Set HTTP status
-ResponseEntity          # Full response control
-@CrossOrigin            # Enable CORS
-@ExceptionHandler       # Exception handler
-@ControllerAdvice       # Global exception handling
-@RestControllerAdvice  # Global REST exception handling
-```
-
-### Web Configuration
-```java
-@EnableWebMvc           # Enable Spring MVC
-@Configuration          # Web configuration class
-@WebAppConfiguration    # Web application context
-@SessionAttributes      # Session attributes
-@ModelAttribute         # Model attribute
-@InitBinder            # Data binding initializer
-@SessionAttribute      # Session attribute binding
-```
-
-### Web Examples
+### Controller Examples
 ```java
 @RestController
-@RequestMapping("/api/v1/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/users")
 public class UserController {
     
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(
-            @PathVariable @Min(1) Long id,
-            @RequestHeader("Accept") String acceptHeader,
-            @CookieValue(value = "session", required = false) String sessionId) {
-        return userService.findById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return ResponseEntity.ok(user);
     }
     
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@Valid @RequestBody CreateUserRequest request) {
-        return userService.create(request);
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserRequest request) {
+        User user = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
     
     @PutMapping("/{id}")
-    public User updateUser(
-            @PathVariable Long id,
-            @RequestPart("user") @Valid User user,
-            @RequestPart("file") MultipartFile file) {
-        return userService.updateWithFile(id, user, file);
+    public ResponseEntity<User> updateUser(@PathVariable Long id, 
+                                       @Valid @RequestBody UserRequest request) {
+        User user = userService.updateUser(id, request);
+        return ResponseEntity.ok(user);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
     
     @GetMapping("/search")
-    public Page<User> searchUsers(
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @MatrixVariable(pathVar = "filters") Map<String, String> filters) {
-        return userService.search(name, page, size, filters);
-    }
-}
-
-@ControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse("NOT_FOUND", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        ErrorResponse error = new ErrorResponse("VALIDATION_ERROR", 
-            ex.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", ")));
-        return ResponseEntity.badRequest().body(error);
+    public ResponseEntity<List<User>> searchUsers(
+            @RequestParam String query,
+            @RequestParam(required = false) String status,
+            @RequestHeader("User-Agent") String userAgent) {
+        
+        List<User> users = userService.search(query, status);
+        return ResponseEntity.ok(users);
     }
 }
 ```
 
-### MVC Configuration
-```java
-@Configuration
-@EnableWebMvc
-@ComponentScan(basePackages = "com.example.web")
-public class WebConfig implements WebMvcConfigurer {
-    
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingInterceptor());
-    }
-    
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-            .allowedOrigins("http://localhost:3000")
-            .allowedMethods("GET", "POST", "PUT", "DELETE");
-    }
-    
-    @Bean
-    public InternalResourceViewResolver viewResolver() {
-        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-        resolver.setPrefix("/WEB-INF/views/");
-        resolver.setSuffix(".jsp");
-        return resolver;
-    }
-}
-```
-
----
-
-## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
-
-### Application Configuration
+### Spring Boot Configuration
 ```java
 @SpringBootApplication        // Main application class
 @EnableAutoConfiguration    // Enable auto-configuration
@@ -3150,208 +3239,74 @@ public class WebConfig implements WebMvcConfigurer {
 @ImportAutoConfiguration    // Import auto-configuration
 @AutoConfigureBefore       // Auto-configuration ordering
 @AutoConfigureAfter        // Auto-configuration ordering
-```
-
-### Properties & Configuration
-```java
-@ConfigurationProperties   // Bind external properties
-@EnableConfigurationProperties // Enable configuration properties
-@ConstructorBinding        // Constructor-based property binding
-@NestedConfigurationProperty // Nested property binding
-```
-
-### Conditional Configuration
-```java
 @ConditionalOnClass        // Conditional on class presence
-@ConditionalOnMissingClass // Conditional on class absence
+@ConditionalOnMissingClass  // Conditional on class absence
 @ConditionalOnBean         // Conditional on bean presence
 @ConditionalOnMissingBean  // Conditional on bean absence
 @ConditionalOnProperty     // Conditional on property
 @ConditionalOnResource     // Conditional on resource
-@ConditionalOnWebApplication // Conditional on web app
-@ConditionalOnNotWebApplication // Conditional on non-web app
+@ConditionalOnWebApplication // Conditional on web application
+@ConditionalOnNotWebApplication // Conditional on non-web application
 @ConditionalOnJava         // Conditional on Java version
-@ConditionalOnJndi        // Conditional on JNDI
+@ConditionalOnJndi         // Conditional on JNDI location
+@ConditionalOnExpression   // Conditional on SpEL expression
 @ConditionalOnCloudPlatform // Conditional on cloud platform
 ```
 
-### Actuator & Monitoring
-```java
-@Endpoint                // Custom actuator endpoint
-@ReadOperation          // Read operation for endpoint
-@WriteOperation         // Write operation for endpoint
-@DeleteOperation        // Delete operation for endpoint
-@Selector               // Endpoint selector
-```
-
-### Boot Examples
-```java
-@SpringBootApplication
-@EnableAutoConfiguration
-@ComponentScan(basePackages = "com.example")
-public class Application {
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-}
-
-@Configuration
-@ConfigurationProperties(prefix = "app.datasource")
-@ConstructorBinding
-public record DataSourceProperties(
-    @NotBlank String url,
-    @Min(1) @Max(100) int maxConnections,
-    @Valid ConnectionPool pool
-) {
-    public record ConnectionPool(
-        @Min(1) @Max(50) int initialSize = 5,
-        @Min(1) @Max(100) int maxSize = 20,
-        long timeoutMs = 30000
-    ) {}
-}
-
-@Endpoint(id = "custom")
-@Component
-public class CustomEndpoint {
-    
-    @ReadOperation
-    public Map<String, Object> customInfo() {
-        return Map.of(
-            "status", "UP",
-            "timestamp", Instant.now(),
-            "version", "1.0.0"
-        );
-    }
-    
-    @WriteOperation
-    public void updateConfig(@Selector String key, String value) {
-        configService.updateProperty(key, value);
-    }
-}
-```
-
----
-
-## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
-
-### Scheduling Configuration
+### Scheduling Annotations
 ```java
 @EnableScheduling        // Enable scheduled tasks
 @EnableAsync             // Enable async support
 @Scheduled              // Schedule method execution
 @Async                  // Async method execution
 @Timed                  // Timed execution
-@EventListener          // Event listener
-@AsyncEventListener      // Async event listener
 ```
 
-### Scheduled Tasks
+### Scheduling Examples
 ```java
 @Service
-@EnableScheduling
 public class ScheduledTasks {
     
-    @Scheduled(fixedRate = 5000) // Every 5 seconds
+    @Scheduled(fixedRate = 5000) // Execute every 5 seconds
     public void reportCurrentTime() {
-        log.info("Current time: {}", LocalDateTime.now());
+        log.info("The time is now {}", LocalDateTime.now());
     }
     
-    @Scheduled(fixedDelay = 10000, initialDelay = 5000) // 5s initial, then 10s after completion
+    @Scheduled(fixedDelay = 10000) // Execute 10 seconds after previous completion
     public void processBatch() {
-        // Batch processing logic
+        log.info("Processing batch job");
     }
     
     @Scheduled(cron = "0 0 12 * * MON-FRI") // Weekdays at noon
-    public void weekdayTask() {
-        // Weekday task
+    public void weekdayNoonTask() {
+        log.info("Running weekday noon task");
     }
     
     @Scheduled(cron = "${app.backup.cron:0 0 2 * * *}") // Configurable cron
     public void backupDatabase() {
-        // Backup logic
-    }
-    
-    @Scheduled(timeZone = "UTC", cron = "0 0 * * * *") // Every hour in UTC
-    public void hourlyTask() {
-        // Hourly task
+        log.info("Starting database backup");
     }
 }
-```
 
-### Async Processing
-```java
 @Service
-@EnableAsync
-public class EmailService {
+public class AsyncService {
     
-    @Async
-    public CompletableFuture<Void> sendWelcomeEmail(User user) {
-        emailClient.sendWelcome(user);
-        return CompletableFuture.completedFuture(null);
-    }
-    
-    @Async("taskExecutor") // Use specific executor
-    public CompletableFuture<String> generateReport(ReportRequest request) {
-        String report = reportGenerator.generate(request);
-        return CompletableFuture.completedFuture(report);
-    }
-    
-    @Async
-    @Timed(name = "email.send", description = "Time taken to send email")
-    public void sendNotification(Notification notification) {
-        notificationService.send(notification);
-    }
-}
-
-@Configuration
-@EnableAsync
-public class AsyncConfig {
-    
-    @Bean(name = "taskExecutor")
-    public Executor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(25);
-        executor.setThreadNamePrefix("Async-");
-        executor.initialize();
-        return executor;
+    @Async("taskExecutor")
+    public CompletableFuture<String> processAsync(String input) {
+        log.info("Processing {} asynchronously", input);
+        
+        try {
+            Thread.sleep(2000); // Simulate long-running task
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        return CompletableFuture.completedFuture("Processed: " + input);
     }
 }
 ```
 
-### Event-Based Scheduling
-```java
-@Component
-public class EventBasedScheduler {
-    
-    @EventListener
-    @Async
-    public void handleUserRegistration(UserRegisteredEvent event) {
-        // Send welcome email asynchronously
-        emailService.sendWelcomeEmail(event.getUser());
-        
-        // Initialize user preferences
-        preferenceService.initializeDefaults(event.getUser());
-        
-        // Add to mailing list
-        mailingListService.addUser(event.getUser());
-    }
-    
-    @EventListener(condition = "#event.type == 'PAYMENT'")
-    @Scheduled(fixedRate = 60000) // Check every minute
-    public void processPaymentEvents() {
-        List<PaymentEvent> events = eventRepository.findUnprocessedPaymentEvents();
-        events.forEach(this::processPayment);
-    }
-}
-```
-
----
-
-## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
-
-### JPA & Entity Mapping
+### Data Access Annotations
 ```java
 @Entity                  // JPA entity
 @Table                  // Table specification
@@ -3359,219 +3314,58 @@ public class EventBasedScheduler {
 @GeneratedValue         // Auto-generated primary key
 @Column                 // Column specification
 @Embedded               // Embedded object
+@Embeddable             // Embeddable class
 @Enumerated             // Enum mapping
-@Lob                    // Large object
-@Temporal               // Date/time mapping
-@Version                // Optimistic locking
-@Transient              // Non-persistent field
-@Basic                  // Basic property mapping
-@Access                 // Access type
-```
-
-### Relationship Mapping
-```java
-@OneToMany              // One-to-many relationship
-@ManyToOne              // Many-to-one relationship
-@OneToOne               // One-to-one relationship
-@ManyToMany             // Many-to-many relationship
-@JoinTable              // Join table specification
-@JoinColumn             // Join column specification
-@JoinColumns            // Multiple join columns
-@PrimaryKeyJoinColumn   // Primary key join column
-@MapsId                 // Maps ID from relationship
-```
-
-### Query & Repository
-```java
-@Query                  // Custom query
-@Param                  // Named parameter
+@Temporal              // Temporal mapping
+@Lob                   // Large object
+@Transient             // Non-persistent field
+@Version               // Optimistic locking version
+@OneToOne              // One-to-one relationship
+@OneToMany             // One-to-many relationship
+@ManyToOne             // Many-to-one relationship
+@ManyToMany            // Many-to-many relationship
+@JoinTable             // Join table for many-to-many
+@JoinColumn           // Join column
+@Repository             // Repository stereotype
+@Transactional          // Transaction management
+@Query                 // Custom query
 @Modifying              // Modifying query
-@Lock                   // Locking
-@QueryHints             // Query hints
-@Procedure              // Stored procedure
-@NamedQueries           // Named queries
-@NamedQuery             // Named query
+@Param                  // Named parameter
+@Lock                  // Pessimistic locking
 ```
 
-### Transaction & Caching
-```java
-@Transactional          // Transaction boundary
-@Cacheable              // Cache result
-@CachePut               // Update cache
-@CacheEvict             // Remove from cache
-@CacheConfig            // Cache configuration
-```
-
-### Data Examples
+### JPA Examples
 ```java
 @Entity
-@Table(name = "orders", indexes = @Index(name = "idx_order_date", columnList = "order_date"))
-public class Order {
+@Table(name = "users")
+public class User {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "order_number", unique = true, nullable = false)
-    private String orderNumber;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
-    
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<OrderItem> items = new ArrayList<>();
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private OrderStatus status;
-    
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "order_date", nullable = false)
-    private Date orderDate;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
     
     @Version
+    @Column(name = "version")
     private Long version;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Order> orders = new ArrayList<>();
+    
+    // Getters and setters
 }
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
     
-    @Query("SELECT o FROM Order o WHERE o.customer.id = :customerId AND o.status = :status")
-    List<Order> findByCustomerAndStatus(@Param("customerId") Long customerId, @Param("status") OrderStatus status);
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
     
     @Modifying
-    @Transactional
-    @Query("UPDATE Order o SET o.status = :newStatus WHERE o.id = :orderId")
-    int updateOrderStatus(@Param("orderId") Long orderId, @Param("newStatus") OrderStatus newStatus);
-    
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT o FROM Order o WHERE o.id = :orderId")
-    Optional<Order> findByIdForUpdate(@Param("orderId") Long orderId);
-    
-    @QueryHints(@QueryHint(name = org.hibernate.jpa.QueryHints.HINT_CACHEABLE, value = "true"))
-    @Query("SELECT o FROM Order o WHERE o.orderDate BETWEEN :startDate AND :endDate")
-    List<Order> findByDateRange(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
-}
-```
-
----
-
-## 16. Spring Core, Web, Boot, Scheduling, Data, Bean Annotations
-
-### Bean Definition
-```java
-@Component              // Generic component
-@Service               // Service component
-@Repository            // Repository component
-@Controller             // Controller component
-@Configuration          // Configuration class
-@Bean                  // Bean definition
-@Lazy                  // Lazy initialization
-@Scope                 // Bean scope
-@Primary               // Primary bean
-@Qualifier             // Bean qualifier
-```
-
-### Bean Lifecycle
-```java
-@PostConstruct          // After dependency injection
-@PreDestroy           // Before bean destruction
-@DependsOn             // Bean dependency
-@Order                 // Bean ordering
-@Role                  // Bean role
-```
-
-### Bean Processing
-```java
-@ComponentScan         // Component scanning
-@Import                // Import configuration
-@ImportResource         // Import XML
-@Profile               // Profile-specific
-@Conditional           // Conditional bean
-@AutoWired             // Auto-wiring
-@Inject                // JSR-330 injection
-@Resource              // JSR-250 injection
-@Value                 # Property injection
-```
-
-### Bean Examples
-```java
-@Configuration
-@ComponentScan(basePackages = "com.example")
-@Import({DatabaseConfig.class, SecurityConfig.class})
-public class BeanConfig {
-    
-    @Bean
-    @Primary
-    @Scope("singleton")
-    public UserService userService(UserRepository userRepository) {
-        return new UserServiceImpl(userRepository);
-    }
-    
-    @Bean
-    @Lazy
-    @Qualifier("cacheService")
-    public CacheService redisCacheService() {
-        return new RedisCacheService();
-    }
-    
-    @Bean
-    @DependsOn("dataSource")
-    public DatabaseInitializer databaseInitializer() {
-        return new DatabaseInitializer();
-    }
-    
-    @Bean
-    @Order(1)
-    public CommandLineRunner dataInitializerRunner() {
-        return args -> {
-            log.info("Initializing data...");
-            dataInitializerService.initialize();
-        };
-    }
-    
-    @Bean
-    @Profile("production")
-    public DataSource productionDataSource() {
-        return new HikariDataSource();
-    }
-    
-    @Bean
-    @Profile("development")
-    public DataSource developmentDataSource() {
-        return new EmbeddedDatabaseBuilder()
-            .setType(EmbeddedDatabaseType.H2)
-            .build();
-    }
-}
-
-@Service
-@Order(2)
-public class UserServiceImpl implements UserService {
-    
-    @Autowired
-    @Qualifier("userRepository")
-    private UserRepository userRepository;
-    
-    @Inject
-    private PasswordEncoder passwordEncoder;
-    
-    @Value("${app.user.default.role:USER}")
-    private String defaultRole;
-    
-    @Resource(name = "notificationService")
-    private NotificationService notificationService;
-    
-    @PostConstruct
-    public void init() {
-        log.info("UserService initialized with default role: {}", defaultRole);
-    }
-    
-    @PreDestroy
-    public void cleanup() {
-        log.info("UserService cleanup");
-    }
+    @Query("UPDATE User u SET u.status = :status WHERE u.id = :id")
+    int updateStatus(@Param("id") Long id, @Param("status") UserStatus status);
 }
 ```
 
@@ -3585,140 +3379,9 @@ public class UserServiceImpl implements UserService {
 @JmsListener             // JMS message listener
 @JmsListenerDestination  // Configure JMS destination
 @SendTo                  // Send message to destination
-@JmsHeaders              # JMS headers binding
-@Validated               # Message validation
+@JmsHeaders              // JMS headers binding
+@Validated               // Message validation
 ```
-
-### JMS Configuration
-```java
-@Configuration
-@EnableJms
-public class JmsConfig {
-    
-    @Bean
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
-            ConnectionFactory connectionFactory,
-            DefaultMessageListenerContainerFactoryConfigurer configurer) {
-        
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setConcurrency("3-10");
-        factory.setMessageConverter(jacksonJmsMessageConverter());
-        factory.setErrorHandler(errorHandler());
-        factory.setSessionTransacted(true);
-        factory.setSessionAcknowledgeMode(Session.AUTO_ACKNOWLEDGE);
-        
-        configurer.configure(factory, connectionFactory);
-        return factory;
-    }
-    
-    @Bean
-    public MessageConverter jacksonJmsMessageConverter() {
-        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setTargetType(MessageType.TEXT);
-        converter.setTypeIdPropertyName("_type");
-        return converter;
-    }
-    
-    @Bean
-    public ErrorHandler errorHandler() {
-        return new ErrorHandler() {
-            @Override
-            public void handleError(Throwable t) {
-                log.error("JMS error occurred", t);
-            }
-        };
-    }
-    
-    @Bean
-    public JmsTemplate jmsTemplate(ConnectionFactory connectionFactory) {
-        JmsTemplate template = new JmsTemplate(connectionFactory);
-        template.setMessageConverter(jacksonJmsMessageConverter());
-        template.setSessionTransacted(true);
-        template.setDeliveryPersistent(true);
-        template.setTimeToLive(3600000); // 1 hour
-        return template;
-    }
-}
-```
-
-### JMS Message Listeners
-```java
-@Component
-public class JmsMessageListeners {
-    
-    @JmsListener(destination = "user.created.queue")
-    public void handleUserCreated(UserCreatedMessage message) {
-        log.info("Received user created message: {}", message);
-        userService.processUserCreated(message);
-    }
-    
-    @JmsListener(
-        destination = "order.processed.topic",
-        containerFactory = "jmsListenerContainerFactory",
-        subscription = "order-subscription"
-    )
-    public void handleOrderProcessed(OrderProcessedMessage message) {
-        log.info("Received order processed message: {}", message);
-        orderService.processOrderProcessed(message);
-    }
-    
-    @JmsListener(
-        destination = "payment.notification.queue",
-        selector = "priority = 'HIGH'",
-        concurrency = "1-3"
-    )
-    public void handleHighPriorityPayment(PaymentMessage message) {
-        log.info("Processing high priority payment: {}", message);
-        paymentService.processHighPriorityPayment(message);
-    }
-    
-    @JmsListener(
-        destination = "error.queue",
-        errorHandler = "jmsErrorHandler"
-    )
-    public void handleErrorMessages(ErrorMessage message) {
-        log.error("Received error message: {}", message);
-        errorService.handleError(message);
-    }
-    
-    @JmsListener(destination = "request.reply.queue")
-    @SendTo("response.queue")
-    public ResponseMessage handleRequest(RequestMessage request) {
-        log.info("Processing request: {}", request);
-        return requestService.processRequest(request);
-    }
-}
-
-@Component
-public class JmsMessageSender {
-    
-    private final JmsTemplate jmsTemplate;
-    
-    @Autowired
-    public JmsMessageSender(JmsTemplate jmsTemplate) {
-        this.jmsTemplate = jmsTemplate;
-    }
-    
-    public void sendUserCreated(UserCreatedMessage message) {
-        jmsTemplate.convertAndSend("user.created.queue", message);
-    }
-    
-    public void sendOrderProcessed(OrderProcessedMessage message) {
-        jmsTemplate.convertAndSend("order.processed.topic", message);
-    }
-    
-    @Scheduled(fixedRate = 60000)
-    public void sendPeriodicHealthCheck() {
-        HealthCheckMessage message = new HealthCheckMessage(Instant.now());
-        jmsTemplate.convertAndSend("health.check.queue", message);
-    }
-}
-```
-
----
-
-## 18. JMS, Redis, RocksDB, and Kafka Annotations
 
 ### Redis Core Annotations
 ```java
@@ -3729,155 +3392,6 @@ public class JmsMessageSender {
 @Reference             // Reference to another Redis hash
 ```
 
-### Redis Configuration
-```java
-@Configuration
-@EnableRedisRepositories(basePackages = "com.example.redis.repository")
-public class RedisConfig {
-    
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(
-            new RedisStandaloneConfiguration("localhost", 6379));
-        factory.setShareNativeConnection(false);
-        return factory;
-    }
-    
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-        return template;
-    }
-    
-    @Bean
-    public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(30))
-            .disableCachingNullValues()
-            .serializeKeysWith(RedisSerializationContext.SerializationPair
-                .fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair
-                .fromSerializer(new GenericJackson2JsonRedisSerializer()));
-        
-        return RedisCacheManager.builder(connectionFactory)
-            .cacheDefaults(config)
-            .build();
-    }
-    
-    @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
-        StringRedisTemplate template = new StringRedisTemplate();
-        template.setConnectionFactory(connectionFactory);
-        return template;
-    }
-}
-```
-
-### Redis Repositories
-```java
-@RedisHash("users")
-public class UserRedis {
-    
-    @Id
-    private String id;
-    
-    @Indexed
-    private String username;
-    
-    @Indexed
-    private String email;
-    
-    @TimeToLive(unit = TimeUnit.HOURS)
-    private long ttl = 24; // 24 hours
-    
-    private String firstName;
-    private String lastName;
-    
-    @Reference
-    private UserProfileRedis profile;
-    
-    // Getters and setters
-}
-
-@RedisHash("user_profiles")
-public class UserProfileRedis {
-    
-    @Id
-    private String userId;
-    
-    private String bio;
-    private String avatar;
-    
-    @Indexed
-    private String status;
-    
-    // Getters and setters
-}
-
-public interface UserRedisRepository extends RedisRepository<UserRedis, String> {
-    
-    List<UserRedis> findByUsername(String username);
-    
-    List<UserRedis> findByEmail(String email);
-    
-    Page<UserRedis> findByUsernameContaining(String username, Pageable pageable);
-    
-    @Query("(@username:?0)")
-    List<UserRedis> findByUsernameQuery(String username);
-}
-```
-
-### Redis Operations
-```java
-@Service
-public class RedisUserService {
-    
-    private final UserRedisRepository userRedisRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final StringRedisTemplate stringRedisTemplate;
-    
-    public RedisUserService(
-            UserRedisRepository userRedisRepository,
-            RedisTemplate<String, Object> redisTemplate,
-            StringRedisTemplate stringRedisTemplate) {
-        this.userRedisRepository = userRedisRepository;
-        this.redisTemplate = redisTemplate;
-        this.stringRedisTemplate = stringRedisTemplate;
-    }
-    
-    @Cacheable(value = "users", key = "#id")
-    public UserRedis findById(String id) {
-        return userRedisRepository.findById(id).orElse(null);
-    }
-    
-    @CachePut(value = "users", key = "#user.id")
-    public UserRedis save(UserRedis user) {
-        return userRedisRepository.save(user);
-    }
-    
-    @CacheEvict(value = "users", key = "#id")
-    public void deleteById(String id) {
-        userRedisRepository.deleteById(id);
-    }
-    
-    public void publishUserEvent(UserEvent event) {
-        redisTemplate.convertAndSend("user.events", event);
-    }
-    
-    @EventListener
-    public void handleUserEvent(UserEvent event) {
-        log.info("Received user event: {}", event);
-        // Process event
-    }
-    
-    public void incrementLoginCount(String userId) {
-        stringRedisTemplate.opsForValue().increment("login:count:" + userId);
-    }
     
     public void addToSet(String setName, String value) {
         stringRedisTemplate.opsForSet().add(setName, value);
@@ -9699,7 +9213,679 @@ public class ConditionalLogger {
 
 ---
 
-## 36. Testing Annotations
+## 36. Spring Integration Annotations
+
+### Core Integration Annotations
+```java
+@EnableIntegration       // Enable Spring Integration
+@IntegrationComponentScan // Scan for integration components
+@MessageEndpoint        // Message endpoint component
+@Transformer            // Message transformer
+@Filter                 // Message filter
+@Router                 // Message router
+@Splitter               // Message splitter
+@Aggregator             // Message aggregator
+@ServiceActivator       // Service activator
+@InboundChannelAdapter   // Inbound channel adapter
+@OutboundChannelAdapter  // Outbound channel adapter
+@BridgeFrom             // Bridge from channel
+@BridgeTo               // Bridge to channel
+@Poller                 // Polling configuration
+@Gateway                // Integration gateway
+@Publisher              // Message publisher
+@Subscriber             // Message subscriber
+```
+
+### Channel Configuration
+```java
+@Configuration
+@EnableIntegration
+public class IntegrationConfig {
+    
+    @Bean
+    public MessageChannel inputChannel() {
+        return new DirectChannel();
+    }
+    
+    @Bean
+    public MessageChannel outputChannel() {
+        return new DirectChannel();
+    }
+    
+    @Bean
+    public MessageChannel errorChannel() {
+        return new DirectChannel();
+    }
+    
+    @Bean
+    public QueueChannel queueChannel() {
+        return new QueueChannel(100);
+    }
+    
+    @Bean
+    public PublishSubscribeChannel pubSubChannel() {
+        return new PublishSubscribeChannel();
+    }
+}
+```
+
+### Message Endpoints
+```java
+@Component
+public class OrderProcessingEndpoint {
+    
+    @ServiceActivator(inputChannel = "orderChannel")
+    public void processOrder(Order order) {
+        log.info("Processing order: {}", order.getId());
+        // Order processing logic
+    }
+    
+    @Transformer(inputChannel = "rawOrderChannel", outputChannel = "orderChannel")
+    public Order transformOrderMessage(String rawOrder) {
+        // Transform raw message to Order object
+        return objectMapper.readValue(rawOrder, Order.class);
+    }
+    
+    @Filter(inputChannel = "orderChannel", outputChannel = "validOrderChannel")
+    public boolean filterValidOrders(Order order) {
+        return order.isValid() && order.getTotalAmount() > 0;
+    }
+    
+    @Router(inputChannel = "orderChannel")
+    public String routeOrder(Order order) {
+        if (order.isPriority()) {
+            return "priorityOrderChannel";
+        } else {
+            return "normalOrderChannel";
+        }
+    }
+    
+    @Splitter(inputChannel = "batchOrderChannel", outputChannel = "orderChannel")
+    public List<Order> splitBatchOrders(BatchOrder batchOrder) {
+        return batchOrder.getOrders();
+    }
+    
+    @Aggregator(inputChannel = "orderItemChannel", outputChannel = "orderSummaryChannel")
+    public OrderSummary aggregateOrderItems(List<OrderItem> items) {
+        OrderSummary summary = new OrderSummary();
+        summary.setItemCount(items.size());
+        summary.setTotalAmount(items.stream().mapToDouble(OrderItem::getPrice).sum());
+        return summary;
+    }
+}
+```
+
+### Channel Adapters
+```java
+@Configuration
+public class ChannelAdapterConfig {
+    
+    // File Inbound Adapter
+    @Bean
+    @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixedRate = "5000"))
+    public MessageSource<File> fileReadingMessageSource() {
+        FileReadingMessageSource source = new FileReadingMessageSource();
+        source.setDirectory(new File("input"));
+        source.setFilter(new SimplePatternFileListFilter("*.xml"));
+        return source;
+    }
+    
+    // JMS Inbound Adapter
+    @Bean
+    @InboundChannelAdapter(value = "jmsInputChannel", 
+                           destination = "order.queue",
+                           connectionFactory = "jmsConnectionFactory")
+    public JmsMessageDrivenEndpoint jmsInboundAdapter() {
+        return new JmsMessageDrivenEndpoint();
+    }
+    
+    // HTTP Inbound Gateway
+    @Bean
+    @InboundChannelAdapter(value = "httpInputChannel")
+    public HttpRequestHandlingMessagingGateway httpInboundGateway() {
+        HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway();
+        gateway.setRequestChannel(httpInputChannel());
+        gateway.setReplyChannel(httpOutputChannel());
+        return gateway;
+    }
+    
+    // File Outbound Adapter
+    @Bean
+    @ServiceActivator(inputChannel = "fileOutputChannel")
+    public MessageHandler fileWritingMessageHandler() {
+        FileWritingMessageHandler handler = new FileWritingMessageHandler(new File("output"));
+        handler.setExpectReply(false);
+        handler.setFileExistsMode(FileExistsMode.APPEND);
+        return handler;
+    }
+    
+    // JMS Outbound Adapter
+    @Bean
+    @ServiceActivator(inputChannel = "jmsOutputChannel")
+    public JmsMessageHandler jmsMessageHandler(ConnectionFactory connectionFactory) {
+        JmsMessageHandler handler = new JmsMessageHandler();
+        handler.setConnectionFactory(connectionFactory);
+        handler.setDestinationName("processed.orders");
+        return handler;
+    }
+}
+```
+
+### Integration Gateway
+```java
+@MessagingGateway
+public interface OrderGateway {
+    
+    @Gateway(requestChannel = "orderInputChannel")
+    void submitOrder(Order order);
+    
+    @Gateway(requestChannel = "orderInputChannel", replyChannel = "orderOutputChannel")
+    Order submitOrderAndWait(Order order);
+    
+    @Gateway(requestChannel = "batchOrderInputChannel")
+    void submitBatchOrders(List<Order> orders);
+    
+    @Gateway(requestChannel = "orderStatusChannel")
+    OrderStatus getOrderStatus(String orderId);
+}
+
+@Component
+public class OrderService {
+    
+    private final OrderGateway orderGateway;
+    
+    public OrderService(OrderGateway orderGateway) {
+        this.orderGateway = orderGateway;
+    }
+    
+    public void processOrder(Order order) {
+        orderGateway.submitOrder(order);
+    }
+    
+    public OrderStatus checkOrderStatus(String orderId) {
+        return orderGateway.getOrderStatus(orderId);
+    }
+}
+```
+
+### Integration Flow DSL
+```java
+@Configuration
+@EnableIntegration
+public class IntegrationFlowConfig {
+    
+    @Bean
+    public IntegrationFlow fileProcessingFlow() {
+        return IntegrationFlow.from("fileInputChannel")
+            .transform(new JsonToObjectTransformer(Order.class))
+            .filter(Order.class, order -> order.isValid())
+            .route("order.isPriority()", 
+                mapping -> mapping
+                    .channelMapping(true, "priorityOrderChannel")
+                    .channelMapping(false, "normalOrderChannel"))
+            .handle("orderProcessor", "processOrder")
+            .get();
+    }
+    
+    @Bean
+    public IntegrationFlow jmsProcessingFlow() {
+        return IntegrationFlow.from(Jms.inboundGateway(jmsConnectionFactory())
+                .destination("order.queue"))
+            .transform(new JsonToObjectTransformer(Order.class))
+            .enrichHeaders(h -> h.header("source", "JMS"))
+            .channel("orderProcessingChannel")
+            .handle("orderProcessor", "processOrder")
+            .get();
+    }
+    
+    @Bean
+    public IntegrationFlow httpProcessingFlow() {
+        return IntegrationFlow.from(Http.inboundGateway("/api/orders")
+                .requestMapping(m -> m.methods("POST")))
+            .transform(new JsonToObjectTransformer(Order.class))
+            .validate(Order.class, order -> order.validate())
+            .channel("orderProcessingChannel")
+            .transform(order -> new OrderConfirmation(order.getId()))
+            .get();
+    }
+}
+```
+
+### Error Handling
+```java
+@Component
+public class ErrorHandler {
+    
+    @ServiceActivator(inputChannel = "errorChannel")
+    public void handleError(ErrorMessage errorMessage) {
+        Message<?> failedMessage = errorMessage.getFailedMessage();
+        Throwable cause = errorMessage.getCause();
+        
+        log.error("Error processing message: {}", failedMessage, cause);
+        
+        // Send to dead letter channel
+        errorChannel().send(MessageBuilder.withPayload(failedMessage)
+            .setHeader("error", cause)
+            .build());
+    }
+    
+    @Bean
+    public MessageChannel errorChannel() {
+        return new DirectChannel();
+    }
+    
+    @Bean
+    public MessageChannel deadLetterChannel() {
+        return new DirectChannel();
+    }
+}
+```
+
+---
+
+## 37. Spring Batch Annotations
+
+### Core Batch Annotations
+```java
+@EnableBatchProcessing    // Enable Spring Batch
+@JobScope                // Job scope for beans
+@StepScope               // Step scope for beans
+@JobBuilderFactory       // Job builder factory
+@StepBuilderFactory      // Step builder factory
+@JobParametersValidator  // Job parameters validator
+@JobExecutionListener    // Job execution listener
+@StepExecutionListener   // Step execution listener
+@ChunkListener           // Chunk listener
+@ItemReadListener        // Item read listener
+@ItemProcessListener     // Item process listener
+@ItemWriteListener       // Item write listener
+@SkipListener            // Skip listener
+@RetryListener           // Retry listener
+@AfterChunk              // After chunk processing
+@BeforeChunk             // Before chunk processing
+@BeforeStep              // Before step execution
+@AfterStep               // After step execution
+@BeforeJob               // Before job execution
+@AfterJob                // After job execution
+```
+
+### Batch Configuration
+```java
+@Configuration
+@EnableBatchProcessing
+public class BatchConfig {
+    
+    @Autowired
+    private JobBuilderFactory jobBuilderFactory;
+    
+    @Autowired
+    private StepBuilderFactory stepBuilderFactory;
+    
+    @Bean
+    public Job importUserJob(JobCompletionNotificationListener listener) {
+        return jobBuilderFactory.get("importUserJob")
+            .incrementer(new RunIdIncrementer())
+            .listener(listener)
+            .flow(step1())
+            .end()
+            .build();
+    }
+    
+    @Bean
+    public Step step1() {
+        return stepBuilderFactory.get("step1")
+            .<User, User>chunk(10)
+            .reader(userItemReader())
+            .processor(userItemProcessor())
+            .writer(userItemWriter())
+            .faultTolerant()
+            .skipLimit(10)
+            .skip(InvalidDataException.class)
+            .retryLimit(3)
+            .retry(TransientDataAccessException.class)
+            .listener(chunkListener())
+            .build();
+    }
+    
+    @Bean
+    @StepScope
+    public ItemReader<User> userItemReader() {
+        return new FlatFileItemReaderBuilder<User>()
+            .name("userItemReader")
+            .resource(new ClassPathResource("users.csv"))
+            .delimited()
+            .names(new String[]{"firstName", "lastName", "email", "age"})
+            .fieldSetMapper(new BeanWrapperFieldSetMapper<User>() {{
+                setTargetType(User.class);
+            }})
+            .build();
+    }
+    
+    @Bean
+    @StepScope
+    public ItemProcessor<User, User> userItemProcessor() {
+        return new UserItemProcessor();
+    }
+    
+    @Bean
+    @StepScope
+    public ItemWriter<User> userItemWriter() {
+        return new JdbcBatchItemWriterBuilder<User>()
+            .itemPreparedStatementSetter(new UserItemPreparedStatementSetter())
+            .sql("INSERT INTO users (first_name, last_name, email, age) VALUES (?, ?, ?, ?)")
+            .dataSource(dataSource())
+            .build();
+    }
+}
+```
+
+### Item Processor
+```java
+@Component
+public class UserItemProcessor implements ItemProcessor<User, User> {
+    
+    private static final Logger log = LoggerFactory.getLogger(UserItemProcessor.class);
+    
+    @Override
+    public User process(User user) throws Exception {
+        // Transform user data
+        String firstName = user.getFirstName().toUpperCase();
+        String lastName = user.getLastName().toUpperCase();
+        String email = user.getEmail().toLowerCase();
+        
+        User transformedUser = new User();
+        transformedUser.setFirstName(firstName);
+        transformedUser.setLastName(lastName);
+        transformedUser.setEmail(email);
+        transformedUser.setAge(user.getAge());
+        
+        log.info("Transformed user: {} -> {}", user.getFirstName(), transformedUser.getFirstName());
+        
+        return transformedUser;
+    }
+}
+```
+
+### Batch Listeners
+```java
+@Component
+public class BatchJobListeners {
+    
+    @BeforeJob
+    public void beforeJob(JobExecution jobExecution) {
+        log.info("Starting job: {}", jobExecution.getJobInstance().getJobName());
+        log.info("Job parameters: {}", jobExecution.getJobParameters());
+    }
+    
+    @AfterJob
+    public void afterJob(JobExecution jobExecution) {
+        if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
+            log.info("Job completed successfully: {}", jobExecution.getJobInstance().getJobName());
+            log.info("Total records processed: {}", jobExecution.getStepExecutions().stream()
+                .mapToLong(StepExecution::getReadCount).sum());
+        } else if (jobExecution.getStatus() == BatchStatus.FAILED) {
+            log.error("Job failed: {}", jobExecution.getJobInstance().getJobName());
+        }
+    }
+    
+    @BeforeStep
+    public void beforeStep(StepExecution stepExecution) {
+        log.info("Starting step: {}", stepExecution.getStepName());
+    }
+    
+    @AfterStep
+    public void afterStep(StepExecution stepExecution) {
+        log.info("Step completed: {}", stepExecution.getStepName());
+        log.info("Read count: {}, Write count: {}, Commit count: {}", 
+            stepExecution.getReadCount(), 
+            stepExecution.getWriteCount(), 
+            stepExecution.getCommitCount());
+    }
+    
+    @BeforeChunk
+    public void beforeChunk(ChunkContext context) {
+        log.info("Starting chunk processing");
+    }
+    
+    @AfterChunk
+    public void afterChunk(ChunkContext context) {
+        log.info("Completed chunk processing");
+    }
+    
+    @OnReadError
+    public void onReadError(Exception ex) {
+        log.error("Error reading item", ex);
+    }
+    
+    @OnWriteError
+    public void onWriteError(Exception ex, List<? extends User> items) {
+        log.error("Error writing items: {}", items.size(), ex);
+    }
+    
+    @OnProcessError
+    public void onProcessError(User item, Exception ex) {
+        log.error("Error processing item: {}", item, ex);
+    }
+    
+    @OnSkipInRead
+    public void onSkipInRead(Throwable t) {
+        log.warn("Skipped item in read due to: {}", t.getMessage());
+    }
+    
+    @OnSkipInWrite
+    public void onSkipInWrite(User item, Throwable t) {
+        log.warn("Skipped item in write: {} due to: {}", item, t.getMessage());
+    }
+    
+    @OnSkipInProcess
+    public void onSkipInProcess(User item, Throwable t) {
+        log.warn("Skipped item in process: {} due to: {}", item, t.getMessage());
+    }
+}
+```
+
+### Multi-Step Job
+```java
+@Configuration
+public class MultiStepJobConfig {
+    
+    @Bean
+    public Job multiStepJob(JobBuilderFactory jobBuilderFactory,
+                           StepBuilderFactory stepBuilderFactory) {
+        return jobBuilderFactory.get("multiStepJob")
+            .incrementer(new RunIdIncrementer())
+            .start(validateStep())
+            .next(processStep())
+            .next(loadStep())
+            .next(reportStep())
+            .build();
+    }
+    
+    @Bean
+    public Step validateStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("validateStep")
+            .tasklet(new ValidationTasklet())
+            .build();
+    }
+    
+    @Bean
+    public Step processStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("processStep")
+            .<Data, ProcessedData>chunk(100)
+            .reader(dataReader())
+            .processor(dataProcessor())
+            .writer(processedDataWriter())
+            .faultTolerant()
+            .skipLimit(100)
+            .skip(ValidationException.class)
+            .build();
+    }
+    
+    @Bean
+    public Step loadStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("loadStep")
+            .<ProcessedData, TargetData>chunk(50)
+            .reader(processedDataReader())
+            .processor(targetDataProcessor())
+            .writer(targetDataWriter())
+            .build();
+    }
+    
+    @Bean
+    public Step reportStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("reportStep")
+            .tasklet(new ReportTasklet())
+            .build();
+    }
+}
+```
+
+### Conditional Job Flow
+```java
+@Configuration
+public class ConditionalJobConfig {
+    
+    @Bean
+    public Job conditionalJob(JobBuilderFactory jobBuilderFactory,
+                           StepBuilderFactory stepBuilderFactory) {
+        return jobBuilderFactory.get("conditionalJob")
+            .incrementer(new RunIdIncrementer())
+            .start(deciderStep())
+            .on("VALID").to(processValidStep())
+            .on("INVALID").to(processInvalidStep())
+            .from(processValidStep()).on("*").to(reportStep())
+            .from(processInvalidStep()).on("*").to(reportStep())
+            .end()
+            .build();
+    }
+    
+    @Bean
+    public Step deciderStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("deciderStep")
+            .tasklet(new DeciderTasklet())
+            .build();
+    }
+    
+    @Bean
+    public JobExecutionDecider dataDecider() {
+        return new DataDecider();
+    }
+    
+    @Bean
+    public Step processValidStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("processValidStep")
+            .tasklet(new ValidDataProcessor())
+            .build();
+    }
+    
+    @Bean
+    public Step processInvalidStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("processInvalidStep")
+            .tasklet(new InvalidDataProcessor())
+            .build();
+    }
+}
+```
+
+### Partitioned Step
+```java
+@Configuration
+public class PartitionedJobConfig {
+    
+    @Bean
+    public Job partitionedJob(JobBuilderFactory jobBuilderFactory,
+                             StepBuilderFactory stepBuilderFactory) {
+        return jobBuilderFactory.get("partitionedJob")
+            .incrementer(new RunIdIncrementer())
+            .start(masterStep(stepBuilderFactory))
+            .build();
+    }
+    
+    @Bean
+    public Step masterStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("masterStep")
+            .partitioner("slaveStep", partitioner())
+            .step(slaveStep(stepBuilderFactory))
+            .gridSize(4)
+            .taskExecutor(taskExecutor())
+            .build();
+    }
+    
+    @Bean
+    public Step slaveStep(StepBuilderFactory stepBuilderFactory) {
+        return stepBuilderFactory.get("slaveStep")
+            .<Data, ProcessedData>chunk(100)
+            .reader(partitionedReader())
+            .processor(dataProcessor())
+            .writer(partitionedWriter())
+            .build();
+    }
+    
+    @Bean
+    public Partitioner partitioner() {
+        return new DataPartitioner();
+    }
+    
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(4);
+        taskExecutor.setMaxPoolSize(8);
+        taskExecutor.setThreadNamePrefix("partition-");
+        return taskExecutor;
+    }
+}
+```
+
+### Batch Testing
+```java
+@SpringBootTest
+public class BatchJobTest {
+    
+    @Autowired
+    private JobLauncherTestUtils jobLauncherTestUtils;
+    
+    @Autowired
+    private JobRepositoryTestUtils jobRepositoryTestUtils;
+    
+    @MockBean
+    private ItemWriter<User> userItemWriter;
+    
+    @Test
+    public void testJob() throws Exception {
+        // Clean up job repository
+        this.jobRepositoryTestUtils.removeJobExecutions();
+        
+        // Launch job
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob();
+        
+        // Verify job completion
+        assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
+        
+        // Verify step execution
+        StepExecution stepExecution = jobExecution.getStepExecutions().iterator().next();
+        assertEquals("step1", stepExecution.getStepName());
+        assertEquals(100, stepExecution.getReadCount());
+        assertEquals(100, stepExecution.getWriteCount());
+    }
+    
+    @Test
+    public void testStep() throws Exception {
+        JobParameters jobParameters = new JobParametersBuilder()
+            .addString("input.file", "test-users.csv")
+            .toJobParameters();
+        
+        JobExecution jobExecution = jobLauncherTestUtils.launchStep("step1", jobParameters);
+        
+        assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
+        verify(userItemWriter, times(10)).write(anyList());
+    }
+}
+```
+
+---
+
+## 38. Testing Annotations
 
 ### Spring Boot Testing
 ```java
@@ -9764,637 +9950,3 @@ class UserControllerTest {
             .andExpect(jsonPath("$.name").value("John Doe"));
     }
 }
-```
-
----
-
-## 9. Caching Annotations
-
-### Cache Abstraction
-```java
-@EnableCaching         // Enable caching support
-@Cacheable             // Cache method result
-@CachePut              # Update cache
-@CacheEvict            # Remove from cache
-@Caching               # Multiple cache operations
-```
-
-```java
-@Service
-@CacheConfig(cacheNames = "users")
-public class UserService {
-    
-    @Cacheable(key = "#id")
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-    
-    @CachePut(key = "#user.id")
-    public User save(User user) {
-        return userRepository.save(user);
-    }
-    
-    @CacheEvict(key = "#id")
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
-    }
-    
-    @Caching(
-        cacheable = @Cacheable(key = "#email"),
-        evict = @CacheEvict(key = "#user.id")
-    )
-    public User updateEmail(User user, String email) {
-        user.setEmail(email);
-        return userRepository.save(user);
-    }
-}
-```
-
----
-
-## 10. Scheduling & Asynchronous Annotations
-
-### Scheduling
-```java
-@EnableScheduling      // Enable scheduled tasks
-@Scheduled            # Schedule method execution
-@Async                # Execute method asynchronously
-@EnableAsync          # Enable async support
-```
-
-```java
-@Service
-@EnableScheduling
-public class ScheduledTasks {
-    
-    @Scheduled(fixedRate = 5000) // Every 5 seconds
-    public void reportCurrentTime() {
-        log.info("Current time: {}", LocalDateTime.now());
-    }
-    
-    @Scheduled(cron = "0 0 12 * * MON-FRI") // Weekdays at noon
-    public void weekdayTask() {
-        // Weekday task
-    }
-    
-    @Scheduled(initialDelay = 1000, fixedDelay = 10000)
-    public void delayedTask() {
-        // Start after 1s, then every 10s after completion
-    }
-}
-
-@Service
-@EnableAsync
-public class EmailService {
-    
-    @Async
-    public CompletableFuture<Void> sendEmail(String to, String subject, String body) {
-        // Send email asynchronously
-        return CompletableFuture.completedFuture(null);
-    }
-}
-```
-
----
-
-## 11. Spring Context Annotations
-
-### Application Context Management
-```java
-@ContextConfiguration       // Load context for tests
-@ActiveProfiles           // Activate specific profiles
-@TestPropertySource        # Override properties
-@ContextHierarchy         # Define context hierarchy
-```
-
-### Environment & Profiles
-```java
-@Profile                  # Bean activation based on profile
-@PropertySource          # Load properties files
-@Environment             # Inject Environment object
-@Value                   # Inject property values
-```
-
-```java
-@Configuration
-@Profile("production")
-@PropertySource("classpath:application-prod.properties")
-public class ProductionConfig {
-    
-    @Bean
-    @Profile("cache")
-    public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager("users", "products");
-    }
-    
-    @Value("${app.datasource.url}")
-    private String datasourceUrl;
-    
-    @Value("${app.connection.pool.size:10}")
-    private int poolSize;
-    
-    @Bean
-    public DataSource dataSource(Environment env) {
-        return DataSourceBuilder.create()
-            .url(env.getProperty("app.datasource.url"))
-            .username(env.getProperty("app.datasource.username"))
-            .password(env.getProperty("app.datasource.password"))
-            .build();
-    }
-}
-```
-
-### Bean Lifecycle & Scope
-```java
-@Scope                   # Define bean scope
-@Lazy                    # Lazy initialization
-@DependsOn              # Specify bean dependencies
-@Primary                 # Primary bean candidate
-@Order                   # Bean ordering
-```
-
-```java
-@Configuration
-public class BeanConfig {
-    
-    @Bean
-    @Scope("prototype") // New instance each time
-    public PrototypeBean prototypeBean() {
-        return new PrototypeBean();
-    }
-    
-    @Bean
-    @Lazy // Initialize only when first requested
-    public LazyBean lazyBean() {
-        return new LazyBean();
-    }
-    
-    @Bean
-    @DependsOn("databaseInitializer") // Initialize after databaseInitializer
-    public UserService userService() {
-        return new UserService();
-    }
-    
-    @Bean
-    @Primary
-    public DataSource primaryDataSource() {
-        return new HikariDataSource();
-    }
-    
-    @Bean
-    @Order(1)
-    public CommandLineRunner firstRunner() {
-        return args -> System.out.println("First runner");
-    }
-    
-    @Bean
-    @Order(2)
-    public CommandLineRunner secondRunner() {
-        return args -> System.out.println("Second runner");
-    }
-}
-```
-
-### Bean Scopes
-| Scope | Description | Use Case |
-|---|---|---|
-| `singleton` | Single instance per container (default) | Stateless services |
-| `prototype` | New instance each request | Stateful objects |
-| `request` | Single instance per HTTP request | Web request data |
-| `session` | Single instance per HTTP session | User session data |
-| `application` | Single instance per ServletContext | Application-wide data |
-| `websocket` | Single instance per WebSocket | WebSocket session data |
-
-### Event Handling
-```java
-@EventListener           # Handle application events
-@AsyncEventListener      # Async event handling
-@TransactionalEventListener # Transaction-aware events
-```
-
-```java
-@Component
-public class UserEventHandlers {
-    
-    @EventListener
-    @Async
-    public void handleUserCreated(UserCreatedEvent event) {
-        // Send welcome email asynchronously
-        emailService.sendWelcomeEmail(event.getUser());
-    }
-    
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserRegistered(UserRegisteredEvent event) {
-        // Only execute after successful transaction commit
-        auditService.logUserRegistration(event.getUser());
-    }
-    
-    @EventListener(condition = "#event.success")
-    public void handleSuccessfulLogin(LoginEvent event) {
-        // Handle only successful logins
-        securityService.updateLastLogin(event.getUser());
-    }
-}
-```
-
-### Application Events
-```java
-@EventListener
-public class ApplicationEventHandler {
-    
-    @EventListener
-    public void handleContextRefreshed(ContextRefreshedEvent event) {
-        // Application context fully refreshed
-        log.info("Application context refreshed");
-    }
-    
-    @EventListener
-    public void handleContextClosed(ContextClosedEvent event) {
-        // Application context closing
-        log.info("Application shutting down");
-    }
-    
-    @EventListener
-    public void handleApplicationReady(ApplicationReadyEvent event) {
-        // Application ready to serve requests
-        log.info("Application ready");
-    }
-}
-```
-
-### Conditional Bean Creation
-```java
-@ConditionalOnClass      # Bean exists if class is available
-@ConditionalOnMissingClass # Bean exists if class is missing
-@ConditionalOnBean       # Bean exists if another bean exists
-@ConditionalOnMissingBean # Bean exists if another bean is missing
-@ConditionalOnProperty   # Bean exists based on property
-@ConditionalOnResource   # Bean exists if resource is available
-@ConditionalOnWebApplication # Bean exists in web context
-@ConditionalOnNotWebApplication # Bean exists in non-web context
-```
-
-```java
-@Configuration
-public class ConditionalConfig {
-    
-    @Bean
-    @ConditionalOnClass(name = "com.mysql.cj.jdbc.Driver")
-    public DataSource mysqlDataSource() {
-        return new HikariDataSource();
-    }
-    
-    @Bean
-    @ConditionalOnProperty(name = "cache.type", havingValue = "redis")
-    public RedisCacheManager redisCacheManager() {
-        return RedisCacheManager.builder()
-            .connectionFactory(redisConnectionFactory())
-            .build();
-    }
-    
-    @Bean
-    @ConditionalOnBean(DataSource.class)
-    public DatabaseHealthIndicator databaseHealthIndicator(DataSource dataSource) {
-        return new DatabaseHealthIndicator(dataSource);
-    }
-    
-    @Bean
-    @ConditionalOnMissingBean(PasswordEncoder.class)
-    public NoOpPasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
-    }
-}
-```
-
-### Configuration Properties Binding
-```java
-@ConfigurationProperties     # Bind external properties
-@Validated                   # Enable validation
-@ConstructorBinding         # Constructor-based binding (Java 16+)
-```
-
-```java
-@ConfigurationProperties(prefix = "app.mail")
-@Validated
-@ConstructorBinding
-public record MailProperties(
-    @NotBlank String host,
-    @Min(1) @Max(65535) int port,
-    @NotBlank String username,
-    String password,
-    @Valid SmtpProperties smtp
-) {
-    
-    public record SmtpProperties(
-        boolean auth = true,
-        boolean starttls = true,
-        String protocol = "smtp"
-    ) {}
-}
-
-// Usage in configuration
-@Configuration
-@EnableConfigurationProperties(MailProperties.class)
-public class MailConfig {
-    
-    @Bean
-    public JavaMailSender mailSender(MailProperties properties) {
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(properties.host());
-        sender.setPort(properties.port());
-        sender.setUsername(properties.username());
-        sender.setPassword(properties.password());
-        return sender;
-    }
-}
-```
-
-### Import & Component Scanning
-```java
-@Import                   # Import configuration classes
-@ImportResource           # Import XML configuration
-@ComponentScan           # Scan for components
-@FilterType              # Filter components during scan
-```
-
-```java
-@Configuration
-@Import({
-    DatabaseConfig.class,
-    SecurityConfig.class,
-    WebConfig.class
-})
-@ComponentScan(
-    basePackages = "com.example",
-    excludeFilters = {
-        @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TestConfig.class),
-        @Filter(type = FilterType.REGEX, pattern = "com\\.example\\.test\\..*")
-    }
-)
-public class AppConfig {
-    
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
-}
-```
-
-### Lazy Loading & Performance
-```java
-@Lazy                     # Lazy bean initialization
-@Lazy(value = false)      # Eager initialization (override)
-```
-
-```java
-@Configuration
-@Lazy // All beans in this configuration are lazy by default
-public class LazyConfiguration {
-    
-    @Bean
-    @Lazy(false) // Override configuration-level lazy
-    public EagerService eagerService() {
-        return new EagerService();
-    }
-    
-    @Bean
-    public LazyService lazyService() {
-        return new LazyService();
-    }
-}
-```
-
-### Application Runner & CommandLineRunner
-```java
-@CommandLineRunner        # Run on application startup
-@ApplicationRunner       # Run on application startup (with ApplicationArguments)
-```
-
-```java
-@Component
-@Order(1)
-public class DataInitializer implements CommandLineRunner {
-    
-    @Override
-    public void run(String... args) throws Exception {
-        // Initialize data on startup
-        log.info("Initializing application data...");
-        initializeDefaultUsers();
-        initializeDefaultSettings();
-    }
-}
-
-@Component
-@Order(2)
-public class MigrationRunner implements ApplicationRunner {
-    
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        // Run database migrations
-        if (args.containsOption("run-migrations")) {
-            log.info("Running database migrations...");
-            migrationService.migrate();
-        }
-    }
-}
-```
-
----
-
-## 12. Actuator & Monitoring Annotations
-
-### Health Indicators
-```java
-@Component
-public class DatabaseHealthIndicator implements HealthIndicator {
-    
-    @Override
-    public Health health() {
-        // Check database connectivity
-        return Health.up()
-            .withDetail("database", "MySQL")
-            .withDetail("status", "Connected")
-            .build();
-    }
-}
-```
-
-### Metrics
-```java
-@RestController
-public class MetricsController {
-    
-    private final MeterRegistry meterRegistry;
-    
-    public MetricsController(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
-    
-    @GetMapping("/api/process")
-    public String process() {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        try {
-            // Process logic
-            return "Processed";
-        } finally {
-            sample.stop(Timer.builder("process.timer").register(meterRegistry));
-        }
-    }
-}
-```
-
----
-
-## 12. Spring Boot 4 New Features & Annotations
-
-### Native Image Support
-```java
-@NativeHint             // GraalVM native image hints
-@RegisterReflectionForBinding // Register reflection for JSON binding
-```
-
-### Observability
-```java
-@Observed               // Observe method execution (Micrometer)
-```
-
-### Problem Details
-```java
-@ExceptionHandler        // Handle specific exceptions
-@ResponseStatus         // Set response status for exceptions
-```
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setProperty("timestamp", Instant.now());
-        return problem;
-    }
-}
-```
-
----
-
-## 13. Common Annotation Combinations
-
-### REST Controller Pattern
-```java
-@RestController
-@RequestMapping("/api/v1/resources")
-@Validated
-public class ResourceController {
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Resource> getResource(
-            @PathVariable @Positive Long id,
-            @RequestHeader("Accept") String acceptHeader) {
-        // Implementation
-    }
-    
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Resource createResource(@Valid @RequestBody ResourceRequest request) {
-        // Implementation
-    }
-}
-```
-
-### Service Layer Pattern
-```java
-@Service
-@Transactional
-@Validated
-@Slf4j
-public class BusinessService {
-    
-    @Cacheable(key = "#id")
-    @PreAuthorize("hasRole('USER')")
-    public BusinessObject process(@Valid @NotNull Long id) {
-        // Implementation
-    }
-}
-```
-
-### Repository Pattern
-```java
-@Repository
-public interface DataRepository extends JpaRepository<Entity, Long> {
-    
-    @Query("SELECT e FROM Entity e WHERE e.status = :status")
-    @Lock(LockModeType.PESSIMISTIC_READ)
-    List<Entity> findByStatus(@Param("status") Status status);
-}
-```
-
----
-
-## 14. Annotation Best Practices
-
-### Configuration Organization
-- Use `@Configuration` classes for related beans
-- Group beans by functionality (web, data, security)
-- Use `@Profile` for environment-specific configurations
-- Prefer constructor injection over field injection
-
-### Validation Strategy
-- Validate at API boundaries (`@Valid` on `@RequestBody`)
-- Use method-level validation in service layer
-- Implement custom validators for business rules
-- Use `@Validated` for method parameter validation
-
-### Security Implementation
-- Apply security at both endpoint and method levels
-- Use expression-based access control for fine-grained permissions
-- Implement proper exception handling for security violations
-- Test security configurations thoroughly
-
-### Testing Approach
-- Use appropriate test slice annotations (`@WebMvcTest`, `@DataJpaTest`)
-- Mock external dependencies with `@MockBean`
-- Use `@TestPropertySource` for test-specific configurations
-- Write integration tests with `@SpringBootTest`
-
----
-
-## 15. Quick Reference Cheat Sheet
-
-| Category | Key Annotations | Primary Use |
-|---|---|---|
-| **Core** | `@Component`, `@Service`, `@Repository`, `@Controller` | Bean definition |
-| **DI** | `@Autowired`, `@Qualifier`, `@Primary`, `@Resource` | Dependency injection |
-| **Config** | `@Configuration`, `@Bean`, `@ComponentScan` | Application setup |
-| **Web** | `@RestController`, `@GetMapping`, `@PostMapping`, `@RequestBody` | REST APIs |
-| **Data** | `@Entity`, `@Repository`, `@Transactional`, `@Query` | Database access |
-| **Validation** | `@Valid`, `@NotNull`, `@Size`, `@Email` | Input validation |
-| **Security** | `@PreAuthorize`, `@PostAuthorize`, `@EnableWebSecurity` | Access control |
-| **Testing** | `@SpringBootTest`, `@WebMvcTest`, `@MockBean` | Test setup |
-| **Caching** | `@Cacheable`, `@CachePut`, `@CacheEvict` | Performance |
-| **Async** | `@Async`, `@Scheduled`, `@EnableAsync` | Concurrency |
-| **AOP** | `@Aspect`, `@Before`, `@After`, `@Around` | Cross-cutting concerns |
-
----
-
-## 16. Migration Notes (Spring Boot 3.x to 4.x)
-
-### Key Changes
-- **Java 21** minimum requirement
-- **Native Image** support improvements
-- **Observability** enhancements with Micrometer
-- **Problem Details** standardized error responses
-- **Virtual Threads** support for concurrent applications
-
-### Deprecated Annotations
-- Some `@ConditionalOn*` annotations have improved alternatives
-- Legacy `@EnableWebMvc` replaced by more declarative approaches
-- Security configuration moved to component-based setup
-
-### New Recommendations
-- Use `@RegisterReflectionForBinding` for native image compatibility
-- Adopt `@Observed` for method-level observability
-- Leverage virtual threads with `@Async` for I/O-bound operations
